@@ -48,7 +48,6 @@ const mockQuestions = [
 
 const QuestionForm = () => {
   const [form] = Form.useForm();
-  const [content, setContent] = useState<string>("");
   const [answer, setAnswer] = useState<string>("");
   const [explanation, setExplanation] = useState<string>("");
   const [options, setOptions] = useState<QuestionOption[]>([
@@ -72,7 +71,6 @@ const QuestionForm = () => {
           status: question.status,
           content: question.content,
         });
-        setContent(question.content);
         setAnswer(question.answer);
         setExplanation(question.explanation);
         setOptions(question.options || []);
@@ -163,7 +161,6 @@ const QuestionForm = () => {
         const questionData = {
           id: isEditing ? id : uuidv4(),
           ...values,
-          content,
           answer,
           explanation,
           options:
@@ -283,7 +280,7 @@ const QuestionForm = () => {
             rules={[{ required: true, message: "请输入题目内容" }]}
             getValueFromEvent={(value) => value}
           >
-            <MDEditor onChange={setContent} height={300} />
+            <MDEditor height={300} />
           </Form.Item>
 
           {/* 选项区域 - 仅选择题和多选题显示 */}

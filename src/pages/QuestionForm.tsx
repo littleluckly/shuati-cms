@@ -48,8 +48,6 @@ const mockQuestions = [
 
 const QuestionForm = () => {
   const [form] = Form.useForm();
-  const [answer, setAnswer] = useState<string>("");
-  const [explanation, setExplanation] = useState<string>("");
   const [options, setOptions] = useState<QuestionOption[]>([
     { id: uuidv4(), text: "", isCorrect: false },
   ]);
@@ -161,8 +159,6 @@ const QuestionForm = () => {
         const questionData = {
           id: isEditing ? id : uuidv4(),
           ...values,
-          answer,
-          explanation,
           options:
             questionType === "选择题" || questionType === "多选题"
               ? options

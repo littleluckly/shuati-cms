@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
+import { Question } from '../types';
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -69,11 +70,11 @@ const mockQuestions = [
 ];
 
 const QuestionList = () => {
-  const [questions, setQuestions] = useState([]);
-  const [filteredQuestions, setFilteredQuestions] = useState([]);
-  const [searchText, setSearchText] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [difficultyFilter, setDifficultyFilter] = useState('all');
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [filteredQuestions, setFilteredQuestions] = useState<Question[]>([]);
+  const [searchText, setSearchText] = useState<string>('');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
   const navigate = useNavigate();
 
   // 初始化数据
@@ -220,8 +221,7 @@ const QuestionList = () => {
             <Button 
               type="primary" 
               icon={<PlusOutlined />} 
-              as={Link} 
-              to="/questions/new"
+              onClick={() => navigate("/questions/new")}
             >
               新增题目
             </Button>

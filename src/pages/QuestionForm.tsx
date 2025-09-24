@@ -6,6 +6,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import MDEditor from '@uiw/react-md-editor';
 import { v4 as uuidv4 } from 'uuid';
+import { Question, RouteParams, QuestionOption } from '../types';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -34,11 +35,11 @@ const mockQuestions = [
 
 const QuestionForm = () => {
   const [form] = Form.useForm();
-  const [content, setContent] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [explanation, setExplanation] = useState('');
-  const [options, setOptions] = useState([{ id: uuidv4(), text: '', isCorrect: false }]);
-  const { id } = useParams();
+  const [content, setContent] = useState<string>('');
+  const [answer, setAnswer] = useState<string>('');
+  const [explanation, setExplanation] = useState<string>('');
+  const [options, setOptions] = useState<QuestionOption[]>([{ id: uuidv4(), text: '', isCorrect: false }]);
+  const { id } = useParams<RouteParams>();
   const navigate = useNavigate();
   const isEditing = !!id;
 
@@ -259,7 +260,6 @@ const QuestionForm = () => {
               value={content}
               onChange={setContent}
               height={300}
-              placeholder="请输入题目内容，支持Markdown格式"
             />
           </Form.Item>
           
@@ -319,7 +319,6 @@ const QuestionForm = () => {
               value={answer}
               onChange={setAnswer}
               height={200}
-              placeholder="请输入参考答案，支持Markdown格式"
             />
           </Form.Item>
           
@@ -331,7 +330,6 @@ const QuestionForm = () => {
               value={explanation}
               onChange={setExplanation}
               height={200}
-              placeholder="请输入答案解析，支持Markdown格式（可选）"
             />
           </Form.Item>
           

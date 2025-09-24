@@ -7,15 +7,16 @@ import {
 } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
+import { Question, StatData } from '../types';
 
 // 模拟数据
-const recentQuestions = [
-  { id: 1, title: "React生命周期有哪些阶段？", type: "选择题", status: "已发布" },
-  { id: 2, title: "解释JavaScript中的原型链", type: "简答题", status: "草稿" },
-  { id: 3, title: "如何实现一个防抖函数？", type: "编程题", status: "已发布" },
+const recentQuestions: Question[] = [
+  { id: '1', title: "React生命周期有哪些阶段？", type: "选择题", difficulty: "中等", category: "React", status: "已发布" },
+  { id: '2', title: "解释JavaScript中的原型链", type: "简答题", difficulty: "困难", category: "JavaScript", status: "草稿" },
+  { id: '3', title: "如何实现一个防抖函数？", type: "编程题", difficulty: "简单", category: "JavaScript", status: "已发布" },
 ];
 
-const difficultyData = [
+const difficultyData: StatData[] = [
   { name: '简单', count: 120 },
   { name: '中等', count: 250 },
   { name: '困难', count: 80 },

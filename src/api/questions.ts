@@ -1,4 +1,4 @@
-import { post, del, get } from '../utils/request';
+import { post, del, get, put } from '../utils/request';
 import { GetQuestionsParams, GetQuestionsResponse, Question } from './types';
 
 /**
@@ -44,7 +44,7 @@ export const createQuestion = async (question: Omit<Question, '_id' | 'created_a
  * @returns 更新后的题目
  */
 export const updateQuestion = async (id: string, question: Partial<Question>): Promise<Question> => {
-  return post<Question>(`/questions/${id}`, question);
+  return put<Question>(`/questions/${id}`, question);
 };
 
 /**

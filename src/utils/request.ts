@@ -76,9 +76,6 @@ request.interceptors.response.use(
         case 404:
           message.error('请求的资源不存在');
           break;
-        case 500:
-          message.error('服务器内部错误，请稍后重试');
-          break;
         default:
           message.error(data.message || '请求失败');
       }

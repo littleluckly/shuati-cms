@@ -16,8 +16,14 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import MDEditor from "@uiw/react-md-editor";
 import { v4 as uuidv4 } from "uuid";
-import { RouteParams, QuestionOption } from "../../types";
+import { RouteParams } from "../../types";
+import { QuestionOption } from "../../api/types";
 import { useQuestion } from "../../contexts/QuestionContext";
+import {
+  getQuestionById,
+  createQuestion,
+  updateQuestion,
+} from "../../api/questions";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -28,6 +34,7 @@ const QuestionForm = () => {
   const [options, setOptions] = useState<QuestionOption[]>([
     { id: uuidv4(), content: "", isCorrect: false },
   ]);
+  const [loading, setLoading] = useState<boolean>(false);
   const { id } = useParams<RouteParams>();
   const navigate = useNavigate();
   const isEditing = !!id;
@@ -38,41 +45,56 @@ const QuestionForm = () => {
   // 初始化表单数据
   useEffect(() => {
     if (isEditing) {
-      // 实际项目中这里会从API获取数据（可以通过context或专门的API调用）
-      // 目前使用模拟数据进行演示
-      const mockQuestion = {
-        _id: id,
-        title: "React中useState的作用是什么？",
-        type: "选择题",
-        difficulty: "简单",
-        category: "前端框架",
-        question_markdown:
-          "# React中useState的作用\n\n`useState` 是React中的一个钩子函数，用于在函数组件中添加状态管理。",
-        answer_markdown:
-          "useState是React中的一个钩子函数，用于在函数组件中添加状态管理。它返回一个包含当前状态和更新状态的函数的数组。",
-        explanation_markdown:
-          "useState是React Hooks的一部分，允许函数组件拥有自己的状态，而无需将其转换为类组件。",
-        status: "已发布",
+      const loadQuestionDetail = async () => {
+        try {
+          setLoading(true);
+          const questionDetail = await getQuestionById(id);
+
+          // 设置表单字段值
+          form.setFieldsValue({
+            type: questionDetail.type,
+            difficulty: questionDetail.difficulty,
+            subjectId: questionDetail.subjectId,
+            category: (questionDetail as any).category || "", // 类型断言，处理可能不存在的category属性
+            tags: questionDetail.tags || [],
+            status: (questionDetail as any).status || "草稿", // 类型断言，处理可能不存在的status属性
+            question_markdown: questionDetail.question_markdown,
+            answer_simple_markdown: questionDetail.answer_simple_markdown || "",
+            answer_detail_markdown: questionDetail.answer_detail_markdown || "",
+            answer_analysis_markdown:
+              questionDetail.answer_analysis_markdown || "", // 使用answer_detail_markdown代替
+          });
+
+          // 设置选项
+          if (questionDetail.options && questionDetail.options.length > 0) {
+            setOptions(questionDetail.options);
+          } else {
+            // 根据题型设置默认选项
+            if (
+              ["single", "multiple", "judgment"].includes(questionDetail.type)
+            ) {
+              if (questionDetail.type === "judgment") {
+                setOptions([
+                  { id: uuidv4(), content: "", isCorrect: false },
+                  { id: uuidv4(), content: "", isCorrect: false },
+                ]);
+              } else {
+                setOptions([
+                  { id: uuidv4(), content: "", isCorrect: false },
+                  { id: uuidv4(), content: "", isCorrect: false },
+                ]);
+              }
+            }
+          }
+        } catch (error) {
+          console.error("获取题目详情失败:", error);
+          message.error("获取题目详情失败");
+        } finally {
+          setLoading(false);
+        }
       };
-      
-      if (mockQuestion) {
-        form.setFieldsValue({
-          title: mockQuestion.title,
-          type: mockQuestion.type,
-          difficulty: mockQuestion.difficulty,
-          category: mockQuestion.category,
-          status: mockQuestion.status,
-          content: mockQuestion.question_markdown,
-          explanation: mockQuestion.explanation_markdown,
-          answer: mockQuestion.answer_markdown,
-        });
-        setOptions([
-          { id: "1", content: "用于创建类组件", isCorrect: false },
-          { id: "2", content: "用于在函数组件中添加状态", isCorrect: true },
-          { id: "3", content: "用于处理DOM事件", isCorrect: false },
-          { id: "4", content: "用于发起网络请求", isCorrect: false },
-        ]);
-      }
+
+      loadQuestionDetail();
     } else {
       // 新增题目时的默认值
       setOptions([
@@ -98,6 +120,11 @@ const QuestionForm = () => {
 
   // 更新选项内容
   const updateOptionContent = (optionId, content) => {
+    // 对于判断题，限制只有两个选项
+    if (form.getFieldValue("type") === "judgment" && options.length >= 2) {
+      return;
+    }
+
     setOptions(
       options.map((option) =>
         option.id === optionId ? { ...option, content } : option
@@ -107,9 +134,12 @@ const QuestionForm = () => {
 
   // 更新选项正确性
   const updateOptionCorrectness = (optionId, isCorrect) => {
-    // 如果是单选题，确保只有一个正确选项
+    // 如果是单选题或判断题，确保只有一个正确选项
     const questionType = form.getFieldValue("type");
-    if (questionType === "选择题" && isCorrect) {
+    if (
+      (questionType === "single" || questionType === "judgment") &&
+      isCorrect
+    ) {
       setOptions(
         options.map((option) =>
           option.id === optionId
@@ -127,14 +157,20 @@ const QuestionForm = () => {
   };
 
   // 表单提交处理
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     form
       .validateFields()
-      .then((values) => {
-        // 验证选项（选择题和多选题）
+      .then(async (values) => {
+        // 验证选项（单选题、多选题和判断题）
         const questionType = values.type;
-        if (questionType === "选择题" || questionType === "多选题") {
-          const hasEmptyOption = options.some((option) => !option.text.trim());
+        if (
+          questionType === "single" ||
+          questionType === "multiple" ||
+          questionType === "judgment"
+        ) {
+          const hasEmptyOption = options.some(
+            (option) => !option.content.trim()
+          );
           if (hasEmptyOption) {
             message.error("选项不能为空");
             return;
@@ -147,37 +183,62 @@ const QuestionForm = () => {
           }
 
           if (
-            questionType === "选择题" &&
+            (questionType === "single" || questionType === "judgment") &&
             options.filter((option) => option.isCorrect).length > 1
           ) {
-            message.error("单选题只能有一个正确选项");
+            message.error(
+              questionType === "single"
+                ? "单选题只能有一个正确选项"
+                : "判断题只能有一个正确选项"
+            );
+            return;
+          }
+
+          // 对于判断题，确保只有两个选项
+          if (questionType === "judgment" && options.length !== 2) {
+            message.error("判断题必须有且仅有两个选项");
             return;
           }
         }
 
         // 构建提交数据
         const questionData = {
-          _id: isEditing ? id : uuidv4(),
-          ...values,
-          options:
-            questionType === "选择题" || questionType === "多选题"
-              ? options
-              : [],
-          created_at: isEditing
-            ? undefined
-            : new Date().toISOString().split("T")[0],
-          updated_at: new Date().toISOString().split("T")[0],
+          type: values.type,
+          difficulty: values.difficulty,
+          subjectId: values.subjectId,
+          category: values.category, // 虽然接口定义中没有，但根据API文档应该支持
+          tags: values.tags || [],
+          question_markdown: values.question_markdown,
+          answer_simple_markdown: values.answer_simple_markdown,
+          answer_detail_markdown: values.answer_detail_markdown,
+          answer_analysis_markdown: values.answer_analysis_markdown,
+          options: ["single", "multiple", "judgment"].includes(questionType)
+            ? options
+            : undefined,
+          files: {},
+          status: values.status, // 虽然接口定义中没有，但根据API文档应该支持
         };
 
-        // 实际项目中这里会调用API保存数据
-        console.log("保存题目数据:", questionData);
+        try {
+          setLoading(true);
+          if (isEditing) {
+            // 编辑模式 - 调用更新API
+            await updateQuestion(id, questionData);
+            message.success("题目更新成功");
+          } else {
+            // 新增模式 - 调用创建API
+            await createQuestion(questionData);
+            message.success("题目创建成功");
+          }
 
-        message.success(isEditing ? "题目更新成功" : "题目创建成功");
-        
-        // 保存成功后刷新题目列表
-        fetchQuestions().then(() => {
+          // 保存成功后刷新题目列表
+          await fetchQuestions();
           navigate("/questions");
-        });
+        } catch (error) {
+          console.error("保存题目失败:", error);
+        } finally {
+          setLoading(false);
+        }
       })
       .catch((info) => {
         console.log("表单验证失败:", info);
@@ -190,13 +251,14 @@ const QuestionForm = () => {
   };
 
   // 题目类型变化时处理选项
+  // 题目类型变化时处理选项
   const handleTypeChange = (type) => {
-    if (type === "选择题") {
+    if (type === "single") {
       // 确保至少有2个选项，且只有一个正确
       const newOptions =
         options.length >= 2
           ? [...options]
-          : [...options, { id: uuidv4(), text: "", isCorrect: false }];
+          : [...options, { id: uuidv4(), content: "", isCorrect: false }];
 
       const correctCount = newOptions.filter((o) => o.isCorrect).length;
       if (correctCount === 0) {
@@ -208,33 +270,39 @@ const QuestionForm = () => {
       }
 
       setOptions(newOptions);
-    } else if (type === "多选题") {
+    } else if (type === "multiple") {
       // 确保至少有2个选项
       if (options.length < 2) {
-        setOptions([...options, { id: uuidv4(), text: "", isCorrect: false }]);
+        setOptions([
+          ...options,
+          { id: uuidv4(), content: "", isCorrect: false },
+        ]);
       }
     } else {
-      // 简答题和编程题不需要选项
+      // 其他题型不需要选项
       setOptions([]);
     }
   };
 
   return (
     <div>
-      <Title level={2}>{isEditing ? "编辑题目" : "新增题目"}</Title>
+      <Title level={2} style={{ marginTop: 0 }}>
+        {isEditing ? "编辑题目" : "新增题目"}
+      </Title>
 
-      <Card>
+      <Card loading={loading}>
         <Form
           form={form}
           layout="vertical"
           initialValues={{
-            type: "选择题",
-            difficulty: "简单",
+            type: "single",
+            difficulty: "easy",
             status: "草稿",
           }}
+          disabled={loading}
         >
           <Form.Item
-            name="title"
+            name="question_markdown"
             label="题目名称"
             rules={[{ required: true, message: "请输入题目名称" }]}
           >
@@ -242,27 +310,13 @@ const QuestionForm = () => {
           </Form.Item>
 
           <Form.Item
-            name="type"
-            label="题目类型"
-            rules={[{ required: true, message: "请选择题目类型" }]}
+            name="subjectId"
+            label="所属科目"
+            rules={[{ required: true, message: "请选择所属科目" }]}
           >
-            <Select onChange={handleTypeChange}>
-              <Option value="选择题">选择题</Option>
-              <Option value="多选题">多选题</Option>
-              <Option value="简答题">简答题</Option>
-              <Option value="编程题">编程题</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="difficulty"
-            label="难度等级"
-            rules={[{ required: true, message: "请选择难度等级" }]}
-          >
-            <Select>
-              <Option value="简单">简单</Option>
-              <Option value="中等">中等</Option>
-              <Option value="困难">困难</Option>
+            <Select placeholder="请选择所属科目">
+              <Option value="68c38c2355855886d48562d2">默认科目</Option>
+              {/* 实际项目中这里会从API获取科目列表 */}
             </Select>
           </Form.Item>
 
@@ -275,20 +329,47 @@ const QuestionForm = () => {
           </Form.Item>
 
           <Form.Item
-            name="content"
-            label="题目内容"
-            rules={[{ required: true, message: "请输入题目内容" }]}
-            getValueFromEvent={(value) => value}
+            name="type"
+            label="题型"
+            rules={[{ required: true, message: "请选择题目类型" }]}
           >
-            <MDEditor height={300} />
+            <Select onChange={handleTypeChange}>
+              <Option value="single">单选题</Option>
+              <Option value="multiple">多选题</Option>
+              <Option value="judgment">判断题</Option>
+              <Option value="blank">填空题</Option>
+              <Option value="answer">简答题</Option>
+              <Option value="coding">编程题</Option>
+            </Select>
           </Form.Item>
 
-          {/* 选项区域 - 仅选择题和多选题显示 */}
-          {form.getFieldValue("type") === "选择题" ||
-          form.getFieldValue("type") === "多选题" ? (
+          <Form.Item
+            name="difficulty"
+            label="难度等级"
+            rules={[{ required: true, message: "请选择难度等级" }]}
+          >
+            <Select>
+              <Option value="easy">简单</Option>
+              <Option value="medium">中等</Option>
+              <Option value="hard">困难</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item name="tags" label="标签" initialValue={[]}>
+            <Select mode="tags" placeholder="请输入标签，按回车确认" />
+          </Form.Item>
+
+          {/* 选项区域 - 仅单选题和多选题显示 */}
+          {form.getFieldValue("type") === "single" ||
+          form.getFieldValue("type") === "multiple" ||
+          form.getFieldValue("type") === "judgment" ? (
             <Form.Item
               label={`${
-                form.getFieldValue("type") === "选择题" ? "单选题" : "多选题"
+                form.getFieldValue("type") === "single"
+                  ? "单选题"
+                  : form.getFieldValue("type") === "multiple"
+                  ? "多选题"
+                  : "判断题"
               }选项`}
             >
               <div>
@@ -301,7 +382,8 @@ const QuestionForm = () => {
                       marginBottom: 12,
                     }}
                   >
-                    {form.getFieldValue("type") === "选择题" ? (
+                    {form.getFieldValue("type") === "single" ||
+                    form.getFieldValue("type") === "judgment" ? (
                       <Radio
                         checked={option.isCorrect}
                         onChange={(e) =>
@@ -309,7 +391,11 @@ const QuestionForm = () => {
                         }
                         style={{ marginRight: 8 }}
                       >
-                        {String.fromCharCode(65 + index)}
+                        {form.getFieldValue("type") === "judgment"
+                          ? index === 0
+                            ? "正确"
+                            : "错误"
+                          : String.fromCharCode(65 + index)}
                       </Radio>
                     ) : (
                       <Checkbox
@@ -323,15 +409,15 @@ const QuestionForm = () => {
                       </Checkbox>
                     )}
                     <Input
-                placeholder={`请输入选项${String.fromCharCode(
-                  65 + index
-                )}`}
-                value={option.content}
-                onChange={(e) =>
-                  updateOptionContent(option.id, e.target.value)
-                }
-                style={{ flex: 1, marginRight: 8 }}
-              />
+                      placeholder={`请输入选项${String.fromCharCode(
+                        65 + index
+                      )}`}
+                      value={option.content}
+                      onChange={(e) =>
+                        updateOptionContent(option.id, e.target.value)
+                      }
+                      style={{ flex: 1, marginRight: 8 }}
+                    />
                     <Button
                       type="text"
                       danger
@@ -355,20 +441,28 @@ const QuestionForm = () => {
           <Divider />
 
           <Form.Item
-            name="answer"
-            label="参考答案"
-            rules={[{ required: true, message: "请输入参考答案" }]}
+            name="answer_simple_markdown"
+            label="精简答案"
+            rules={[{ required: true, message: "请输入精简答案" }]}
             getValueFromEvent={(value) => value}
           >
-            <MDEditor height={200} />
+            <MDEditor height={200} data-color-mode="light" />
+          </Form.Item>
+          <Form.Item
+            name="answer_detail_markdown"
+            label="扩展答案"
+            rules={[{ required: true, message: "请输入扩展回答" }]}
+            getValueFromEvent={(value) => value}
+          >
+            <MDEditor height={200} data-color-mode="light" />
           </Form.Item>
 
           <Form.Item
-            name="explanation"
-            label="答案解析"
+            name="answer_analysis_markdown"
+            label="详细解析"
             getValueFromEvent={(value) => value}
           >
-            <MDEditor height={200} />
+            <MDEditor height={200} data-color-mode="light" />
           </Form.Item>
 
           <Form.Item
@@ -384,10 +478,12 @@ const QuestionForm = () => {
 
           <Form.Item>
             <Space>
-              <Button type="primary" onClick={handleSubmit}>
+              <Button type="primary" onClick={handleSubmit} loading={loading}>
                 {isEditing ? "更新题目" : "创建题目"}
               </Button>
-              <Button onClick={handleCancel}>取消</Button>
+              <Button onClick={handleCancel} disabled={loading}>
+                取消
+              </Button>
             </Space>
           </Form.Item>
         </Form>

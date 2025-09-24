@@ -41,13 +41,14 @@ export interface QuestionFiles {
 // 题目类型
 export interface Question {
   _id: string;
-  type: 'single' | 'multiple' | 'judgment' | 'programming' | 'blank' | 'essay';
+  type: 'single' | 'multiple' | 'judgment' | 'programming' | 'blank' | 'answer';
   difficulty: 'easy' | 'medium' | 'hard';
   subjectId: string;
   tags: string[];
   question_markdown: string;
   answer_simple_markdown?: string;
   answer_detail_markdown?: string;
+  answer_analysis_markdown?: string;
   options?: QuestionOption[];
   files?: QuestionFiles;
   created_at: string;

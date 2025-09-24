@@ -33,25 +33,28 @@ function App() {
         <Layout>
           <Header />
           <Content
-              style={{
-                margin: "24px 16px",
-                padding: 24,
-                minHeight: 280,
-                background: colorBgContainer,
-                borderRadius: borderRadiusLG,
-              }}
-            >
-              <QuestionProvider>
-                <Routes>
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/questions" element={<QuestionList />} />
-                  <Route path="/questions/new" element={<QuestionForm />} />
-                  <Route path="/questions/edit/:id" element={<QuestionForm />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </QuestionProvider>
-            </Content>
+            style={{
+              margin: "16px",
+              padding: 24,
+              minHeight: 280,
+              background: colorBgContainer,
+              borderRadius: borderRadiusLG,
+            }}
+          >
+            <QuestionProvider>
+              <Routes>
+                <Route
+                  path="/"
+                  element={<Navigate to="/dashboard" replace />}
+                />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/questions" element={<QuestionList />} />
+                <Route path="/questions/new" element={<QuestionForm />} />
+                <Route path="/questions/edit/:id" element={<QuestionForm />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </QuestionProvider>
+          </Content>
         </Layout>
       </Layout>
     </ConfigProvider>

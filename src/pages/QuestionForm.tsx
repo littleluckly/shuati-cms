@@ -70,9 +70,9 @@ const QuestionForm = () => {
           category: question.category,
           status: question.status,
           content: question.content,
+          explanation: question.explanation,
+          answer: question.answer,
         });
-        setAnswer(question.answer);
-        setExplanation(question.explanation);
         setOptions(question.options || []);
       }
     } else {
@@ -358,16 +358,17 @@ const QuestionForm = () => {
             name="answer"
             label="参考答案"
             rules={[{ required: true, message: "请输入参考答案" }]}
+            getValueFromEvent={(value) => value}
           >
-            <MDEditor value={answer} onChange={setAnswer} height={200} />
+            <MDEditor height={200} />
           </Form.Item>
 
-          <Form.Item name="explanation" label="答案解析">
-            <MDEditor
-              value={explanation}
-              onChange={setExplanation}
-              height={200}
-            />
+          <Form.Item
+            name="explanation"
+            label="答案解析"
+            getValueFromEvent={(value) => value}
+          >
+            <MDEditor height={200} />
           </Form.Item>
 
           <Form.Item

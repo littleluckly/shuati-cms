@@ -62,7 +62,7 @@ const QuestionForm = () => {
   useEffect(() => {
     if (isEditing) {
       // 实际项目中这里会从API获取数据
-      const question = mockQuestions.find((q) => q.id === id);
+      const question = mockQuestions[0];
       if (question) {
         form.setFieldsValue({
           title: question.title,
@@ -70,6 +70,7 @@ const QuestionForm = () => {
           difficulty: question.difficulty,
           category: question.category,
           status: question.status,
+          content: question.content,
         });
         setContent(question.content);
         setAnswer(question.answer);
@@ -280,8 +281,9 @@ const QuestionForm = () => {
             name="content"
             label="题目内容"
             rules={[{ required: true, message: "请输入题目内容" }]}
+            getValueFromEvent={(value) => value}
           >
-            <MDEditor value={content} onChange={setContent} height={300} />
+            <MDEditor onChange={setContent} height={300} />
           </Form.Item>
 
           {/* 选项区域 - 仅选择题和多选题显示 */}

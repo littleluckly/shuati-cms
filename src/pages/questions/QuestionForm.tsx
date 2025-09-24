@@ -16,75 +16,75 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import MDEditor from "@uiw/react-md-editor";
 import { v4 as uuidv4 } from "uuid";
-import { Question, RouteParams, QuestionOption } from "../types";
+import { RouteParams, QuestionOption } from "../../types";
+import { useQuestion } from "../../contexts/QuestionContext";
 
 const { Title } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
-// 模拟题目数据
-const mockQuestions = [
-  {
-    id: "1",
-    title: "React中useState的作用是什么？",
-    type: "选择题",
-    difficulty: "简单",
-    category: "前端框架",
-    content:
-      "# React中useState的作用\n\n`useState` 是React中的一个钩子函数，用于在函数组件中添加状态管理。",
-    options: [
-      { id: "1", text: "用于创建类组件", isCorrect: false },
-      { id: "2", text: "用于在函数组件中添加状态", isCorrect: true },
-      { id: "3", text: "用于处理DOM事件", isCorrect: false },
-      { id: "4", text: "用于发起网络请求", isCorrect: false },
-    ],
-    answer:
-      "useState是React中的一个钩子函数，用于在函数组件中添加状态管理。它返回一个包含当前状态和更新状态的函数的数组。",
-    explanation:
-      "useState是React Hooks的一部分，允许函数组件拥有自己的状态，而无需将其转换为类组件。",
-    status: "已发布",
-  },
-];
-
 const QuestionForm = () => {
   const [form] = Form.useForm();
   const [options, setOptions] = useState<QuestionOption[]>([
-    { id: uuidv4(), text: "", isCorrect: false },
+    { id: uuidv4(), content: "", isCorrect: false },
   ]);
   const { id } = useParams<RouteParams>();
   const navigate = useNavigate();
   const isEditing = !!id;
 
+  // 获取QuestionContext中的方法
+  const { fetchQuestions } = useQuestion();
+
   // 初始化表单数据
   useEffect(() => {
     if (isEditing) {
-      // 实际项目中这里会从API获取数据
-      const question = mockQuestions[0];
-      if (question) {
+      // 实际项目中这里会从API获取数据（可以通过context或专门的API调用）
+      // 目前使用模拟数据进行演示
+      const mockQuestion = {
+        _id: id,
+        title: "React中useState的作用是什么？",
+        type: "选择题",
+        difficulty: "简单",
+        category: "前端框架",
+        question_markdown:
+          "# React中useState的作用\n\n`useState` 是React中的一个钩子函数，用于在函数组件中添加状态管理。",
+        answer_markdown:
+          "useState是React中的一个钩子函数，用于在函数组件中添加状态管理。它返回一个包含当前状态和更新状态的函数的数组。",
+        explanation_markdown:
+          "useState是React Hooks的一部分，允许函数组件拥有自己的状态，而无需将其转换为类组件。",
+        status: "已发布",
+      };
+      
+      if (mockQuestion) {
         form.setFieldsValue({
-          title: question.title,
-          type: question.type,
-          difficulty: question.difficulty,
-          category: question.category,
-          status: question.status,
-          content: question.content,
-          explanation: question.explanation,
-          answer: question.answer,
+          title: mockQuestion.title,
+          type: mockQuestion.type,
+          difficulty: mockQuestion.difficulty,
+          category: mockQuestion.category,
+          status: mockQuestion.status,
+          content: mockQuestion.question_markdown,
+          explanation: mockQuestion.explanation_markdown,
+          answer: mockQuestion.answer_markdown,
         });
-        setOptions(question.options || []);
+        setOptions([
+          { id: "1", content: "用于创建类组件", isCorrect: false },
+          { id: "2", content: "用于在函数组件中添加状态", isCorrect: true },
+          { id: "3", content: "用于处理DOM事件", isCorrect: false },
+          { id: "4", content: "用于发起网络请求", isCorrect: false },
+        ]);
       }
     } else {
       // 新增题目时的默认值
       setOptions([
-        { id: uuidv4(), text: "", isCorrect: false },
-        { id: uuidv4(), text: "", isCorrect: false },
+        { id: uuidv4(), content: "", isCorrect: false },
+        { id: uuidv4(), content: "", isCorrect: false },
       ]);
     }
   }, [form, id, isEditing]);
 
   // 添加选项
   const addOption = () => {
-    setOptions([...options, { id: uuidv4(), text: "", isCorrect: false }]);
+    setOptions([...options, { id: uuidv4(), content: "", isCorrect: false }]);
   };
 
   // 删除选项
@@ -96,11 +96,11 @@ const QuestionForm = () => {
     }
   };
 
-  // 更新选项文本
-  const updateOptionText = (optionId, text) => {
+  // 更新选项内容
+  const updateOptionContent = (optionId, content) => {
     setOptions(
       options.map((option) =>
-        option.id === optionId ? { ...option, text } : option
+        option.id === optionId ? { ...option, content } : option
       )
     );
   };
@@ -157,23 +157,27 @@ const QuestionForm = () => {
 
         // 构建提交数据
         const questionData = {
-          id: isEditing ? id : uuidv4(),
+          _id: isEditing ? id : uuidv4(),
           ...values,
           options:
             questionType === "选择题" || questionType === "多选题"
               ? options
               : [],
-          createdAt: isEditing
+          created_at: isEditing
             ? undefined
             : new Date().toISOString().split("T")[0],
-          updatedAt: new Date().toISOString().split("T")[0],
+          updated_at: new Date().toISOString().split("T")[0],
         };
 
         // 实际项目中这里会调用API保存数据
         console.log("保存题目数据:", questionData);
 
         message.success(isEditing ? "题目更新成功" : "题目创建成功");
-        navigate("/questions");
+        
+        // 保存成功后刷新题目列表
+        fetchQuestions().then(() => {
+          navigate("/questions");
+        });
       })
       .catch((info) => {
         console.log("表单验证失败:", info);
@@ -319,15 +323,15 @@ const QuestionForm = () => {
                       </Checkbox>
                     )}
                     <Input
-                      placeholder={`请输入选项${String.fromCharCode(
-                        65 + index
-                      )}`}
-                      value={option.text}
-                      onChange={(e) =>
-                        updateOptionText(option.id, e.target.value)
-                      }
-                      style={{ flex: 1, marginRight: 8 }}
-                    />
+                placeholder={`请输入选项${String.fromCharCode(
+                  65 + index
+                )}`}
+                value={option.content}
+                onChange={(e) =>
+                  updateOptionContent(option.id, e.target.value)
+                }
+                style={{ flex: 1, marginRight: 8 }}
+              />
                     <Button
                       type="text"
                       danger

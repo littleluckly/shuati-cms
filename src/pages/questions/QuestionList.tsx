@@ -33,6 +33,9 @@ const QuestionList = () => {
     typeFilter,
     difficultyFilter,
     loading,
+    total,
+    currentPage,
+    pageSize,
     setSearchText,
     setTypeFilter,
     setDifficultyFilter,
@@ -44,6 +47,16 @@ const QuestionList = () => {
     setSearchText("");
     // fetchQuestions();
   }, [setSearchText]);
+
+  // 处理页码变化
+  const handlePageChange = (page: number) => {
+    fetchQuestions({ page, limit: pageSize });
+  };
+
+  // 处理每页显示条数变化
+  const handlePageSizeChange = (_: number, size: number) => {
+    fetchQuestions({ page: currentPage, limit: size });
+  };
 
   // 格式化类型显示
   const getTypeDisplay = (type) => {
@@ -102,7 +115,7 @@ const QuestionList = () => {
       key: "tags",
       render: (tags) => (
         <Space size="small">
-          {tags.map((tag, index) => (
+          {tags?.map((tag, index) => (
             <Tag key={index}>{tag}</Tag>
           ))}
         </Space>
@@ -210,7 +223,15 @@ const QuestionList = () => {
         columns={columns}
         dataSource={questions}
         rowKey="_id"
-        pagination={{ pageSize: 10 }}
+        pagination={{
+          current: currentPage,
+          pageSize: pageSize,
+          total: total,
+          onChange: handlePageChange,
+          onShowSizeChange: handlePageSizeChange,
+          showSizeChanger: true,
+          showTotal: (total) => `共 ${total} 条数据`,
+        }}
         scroll={{ x: "max-content" }}
         loading={loading}
       />

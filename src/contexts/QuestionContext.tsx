@@ -10,6 +10,9 @@ interface QuestionContextType {
   typeFilter: string;
   difficultyFilter: string;
   loading: boolean;
+  total: number;
+  currentPage: number;
+  pageSize: number;
   setSearchText: (text: string) => void;
   setTypeFilter: (type: string) => void;
   setDifficultyFilter: (difficulty: string) => void;
@@ -31,6 +34,9 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({ children }) 
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
   const [loading, setLoading] = useState<boolean>(true);
+  const [total, setTotal] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   // 从API获取题目列表 - 支持筛选参数
   const fetchQuestions = async (params?: {page?: number, limit?: number}) => {
@@ -61,6 +67,13 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({ children }) 
       const response = await getQuestions(apiParams);
       console.log("获取题目列表:", response);
       setQuestions(response.questions || []);
+      
+      // 保存分页信息
+      if (response.pagination) {
+        setTotal(response.pagination.total || 0);
+        setCurrentPage(response.pagination.page || 1);
+        setPageSize(response.pagination.limit || 10);
+      }
     } catch (error) {
       console.error("获取题目列表错误:", error);
       // 注意：错误处理已在request.ts中统一处理，这里可以根据需要添加额外的错误处理
@@ -95,6 +108,9 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({ children }) 
     typeFilter,
     difficultyFilter,
     loading,
+    total,
+    currentPage,
+    pageSize,
     setSearchText,
     setTypeFilter,
     setDifficultyFilter,

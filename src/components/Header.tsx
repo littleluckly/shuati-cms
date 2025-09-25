@@ -2,23 +2,39 @@ import { Layout, Button, Dropdown, Avatar, Menu } from 'antd';
 import { MenuUnfoldOutlined, MenuFoldOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
 
 const { Header } = Layout;
 
 const AppHeader = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const toggle = () => {
     setCollapsed(!collapsed);
   };
 
+  const handleLogout = () => {
+    logout();
+  };
+
   const userMenu = {
     items: [
-      { key: 'profile', label: '个人资料' },
-      { key: 'logout', label: '退出登录' },
+      {
+        key: 'profile', 
+        label: '个人资料',
+        onClick: () => navigate('/profile')
+      },
+      {
+        key: 'logout', 
+        label: '退出登录',
+        onClick: handleLogout
+      },
     ],
   };
+
+  const userName = user?.username || '管理员';
 
   return (
     <Header
@@ -42,14 +58,16 @@ const AppHeader = () => {
         }}
       />
       
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <Dropdown menu={userMenu}>
-          <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-            <Avatar icon={<UserOutlined />} />
-            <span style={{ marginLeft: 8 }}>管理员</span>
-          </div>
-        </Dropdown>
-      </div>
+      {isAuthenticated && (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Dropdown menu={userMenu}>
+            <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+              <Avatar icon={<UserOutlined />} />
+              <span style={{ marginLeft: 8 }}>{userName}</span>
+            </div>
+          </Dropdown>
+        </div>
+      )}
     </Header>
   );
 };

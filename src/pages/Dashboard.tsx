@@ -155,6 +155,7 @@ const Dashboard = () => {
           <Card title="题目难度分布">
             <Table
               dataSource={difficultyData}
+              rowKey="name"
               columns={[
                 { title: "难度等级", dataIndex: "name", key: "name" },
                 { title: "题目数量", dataIndex: "count", key: "count" },

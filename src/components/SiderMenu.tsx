@@ -39,6 +39,11 @@ const SiderMenu = () => {
             label: <Link to="/dashboard">仪表盘</Link>,
           },
           {
+            key: "/subjects",
+            icon: <BookOutlined />,
+            label: <Link to="/subjects">科目管理</Link>,
+          },
+          {
             key: "/questions",
             icon: <BookOutlined />,
             label: <Link to="/questions">题目管理</Link>,

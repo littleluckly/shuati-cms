@@ -1,19 +1,21 @@
-import { Layout, theme, ConfigProvider } from "antd";
 import { Routes, Route, Navigate } from "react-router-dom";
 import SiderMenu from "./components/SiderMenu";
 import Header from "./components/Header";
 import Dashboard from "./pages/Dashboard";
 import QuestionList from "./pages/questions/QuestionList";
 import QuestionForm from "./pages/questions/QuestionForm";
+import SubjectList from "./pages/subjects/SubjectList";
+import SubjectForm from "./pages/subjects/SubjectForm";
 import NotFound from "./pages/NotFound";
 import { QuestionProvider } from "./contexts/QuestionContext";
+import { SubjectProvider } from "./contexts/SubjectContext";
+import { Layout, ConfigProvider } from 'antd';
+import { theme } from 'antd';
 
 const { Content } = Layout;
 
 function App() {
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
+  const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
 
   return (
     <ConfigProvider
@@ -41,19 +43,63 @@ function App() {
               borderRadius: borderRadiusLG,
             }}
           >
-            <QuestionProvider>
-              <Routes>
-                <Route
-                  path="/"
-                  element={<Navigate to="/dashboard" replace />}
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/questions">
+                <Route 
+                  index 
+                  element={
+                    <QuestionProvider>
+                      <QuestionList />
+                    </QuestionProvider>
+                  }
                 />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/questions" element={<QuestionList />} />
-                <Route path="/questions/new" element={<QuestionForm />} />
-                <Route path="/questions/edit/:id" element={<QuestionForm />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </QuestionProvider>
+                <Route 
+                  path="new" 
+                  element={
+                    <QuestionProvider>
+                      <QuestionForm />
+                    </QuestionProvider>
+                  }
+                />
+                <Route 
+                  path="edit/:id" 
+                  element={
+                    <QuestionProvider>
+                      <QuestionForm />
+                    </QuestionProvider>
+                  }
+                />
+              </Route>
+              <Route path="/subjects">
+                <Route 
+                  index 
+                  element={
+                    <SubjectProvider>
+                      <SubjectList />
+                    </SubjectProvider>
+                  }
+                />
+                <Route 
+                  path="create" 
+                  element={
+                    <SubjectProvider>
+                      <SubjectForm />
+                    </SubjectProvider>
+                  }
+                />
+                <Route 
+                  path="edit/:id" 
+                  element={
+                    <SubjectProvider>
+                      <SubjectForm />
+                    </SubjectProvider>
+                  }
+                />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </Content>
         </Layout>
       </Layout>

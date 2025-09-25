@@ -128,7 +128,7 @@ const Dashboard = () => {
             <List
               dataSource={recentQuestions}
               renderItem={(item) => (
-                <List.Item>
+                <List.Item key={item.id}>
                   <List.Item.Meta
                     title={item.title}
                     description={

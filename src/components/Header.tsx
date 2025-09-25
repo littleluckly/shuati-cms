@@ -13,12 +13,12 @@ const AppHeader = () => {
     setCollapsed(!collapsed);
   };
 
-  const userMenu = (
-    <Menu>
-      <Menu.Item key="profile">个人资料</Menu.Item>
-      <Menu.Item key="logout">退出登录</Menu.Item>
-    </Menu>
-  );
+  const userMenu = {
+    items: [
+      { key: 'profile', label: '个人资料' },
+      { key: 'logout', label: '退出登录' },
+    ],
+  };
 
   return (
     <Header
@@ -43,7 +43,7 @@ const AppHeader = () => {
       />
       
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        <Dropdown overlay={userMenu}>
+        <Dropdown menu={userMenu}>
           <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
             <Avatar icon={<UserOutlined />} />
             <span style={{ marginLeft: 8 }}>管理员</span>

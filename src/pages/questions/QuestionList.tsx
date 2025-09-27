@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import {
   Table,
   Button,
@@ -11,6 +11,7 @@ import {
   Row,
   Col,
   Select,
+  Tabs,
 } from "antd";
 import {
   PlusOutlined,
@@ -20,10 +21,12 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useQuestion } from "../../contexts/QuestionContext";
+import { useSubject } from "../../contexts/SubjectContext";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
 const { Option } = Select;
+const { TabPane } = Tabs;
 
 const QuestionList = () => {
   const navigate = useNavigate();
@@ -43,20 +46,93 @@ const QuestionList = () => {
     fetchQuestions,
   } = useQuestion();
 
+  const { subjects, fetchSubjects } = useSubject();
+  const [activeSubjectId, setActiveSubjectId] = useState<string>("");
+
+  // 当科目列表加载后，默认选择第一个科目
+  useEffect(() => {
+    if (subjects.length > 0 && !activeSubjectId) {
+      setActiveSubjectId(subjects[0]._id);
+      fetchQuestions({
+        page: 1,
+        limit: pageSize,
+        subjectId: subjects[0]._id,
+      });
+    }
+  }, [subjects, activeSubjectId, fetchQuestions, pageSize]);
+
   const onClear = useCallback(() => {
     setSearchText("");
     // fetchQuestions();
   }, [setSearchText]);
 
+  // 处理科目切换
+  const handleSubjectChange = (subjectId: string) => {
+    console.log("切换科目:", subjectId);
+    setActiveSubjectId(subjectId);
+    // 重置筛选条件
+    setSearchText("");
+    setTypeFilter("all");
+    setDifficultyFilter("all");
+    // 根据科目获取题目
+    fetchQuestions({
+      page: 1,
+      limit: pageSize,
+      subjectId: subjectId,
+    });
+  };
+
   // 处理页码变化
   const handlePageChange = (page: number) => {
-    fetchQuestions({ page, limit: pageSize });
+    fetchQuestions({
+      page,
+      limit: pageSize,
+      subjectId: activeSubjectId,
+    });
+  };
+
+  // 处理搜索
+  const handleSearch = () => {
+    fetchQuestions({
+      page: 1,
+      limit: pageSize,
+      subjectId: activeSubjectId,
+    });
+  };
+
+  // 处理类型筛选
+  const handleTypeFilterChange = (value: string) => {
+    setTypeFilter(value);
+    fetchQuestions({
+      page: 1,
+      limit: pageSize,
+      subjectId: activeSubjectId,
+    });
+  };
+
+  // 处理难度筛选
+  const handleDifficultyFilterChange = (value: string) => {
+    setDifficultyFilter(value);
+    fetchQuestions({
+      page: 1,
+      limit: pageSize,
+      subjectId: activeSubjectId,
+    });
   };
 
   // 处理每页显示条数变化
   const handlePageSizeChange = (_: number, size: number) => {
-    fetchQuestions({ page: currentPage, limit: size });
+    fetchQuestions({
+      page: currentPage,
+      limit: size,
+      subjectId: activeSubjectId,
+    });
   };
+
+  // 初始化获取科目列表
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
 
   // 格式化类型显示
   const getTypeDisplay = (type) => {
@@ -140,7 +216,7 @@ const QuestionList = () => {
           </Button>
           <Popconfirm
             title="确定要删除这个题目吗？"
-            onConfirm={() => handleDelete(record._id)}
+            onConfirm={() => handleDelete(record._id, record.subjectId)}
             okText="是"
             cancelText="否"
           >
@@ -155,10 +231,18 @@ const QuestionList = () => {
 
   return (
     <div>
-      <Title level={2}>题目管理</Title>
+      <Title level={2} style={{ marginTop: 0 }}>
+        题目管理
+      </Title>
 
       <Card style={{ marginBottom: 24 }}>
-        <Row gutter={[16, 16]} align="middle">
+        <Tabs activeKey={activeSubjectId} onChange={handleSubjectChange}>
+          {subjects.map((subject) => (
+            <TabPane tab={subject.name} key={subject._id} />
+          ))}
+        </Tabs>
+
+        <Row gutter={[16, 16]} align="middle" style={{ marginTop: 16 }}>
           <Col xs={24} sm={12} md={8} lg={6}>
             <Button
               type="primary"
@@ -179,7 +263,7 @@ const QuestionList = () => {
                   size="middle"
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
-                  onSearch={() => fetchQuestions()}
+                  onSearch={handleSearch}
                   onClear={() => setSearchText("")}
                 />
               </Col>
@@ -189,7 +273,7 @@ const QuestionList = () => {
                   placeholder="题目类型"
                   style={{ width: "100%" }}
                   value={typeFilter}
-                  onChange={setTypeFilter}
+                  onChange={handleTypeFilterChange}
                   allowClear
                 >
                   <Option value="all">全部类型</Option>
@@ -205,7 +289,7 @@ const QuestionList = () => {
                   placeholder="难度等级"
                   style={{ width: "100%" }}
                   value={difficultyFilter}
-                  onChange={setDifficultyFilter}
+                  onChange={handleDifficultyFilterChange}
                   allowClear
                 >
                   <Option value="all">全部难度</Option>

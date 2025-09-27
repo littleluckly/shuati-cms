@@ -50,18 +50,7 @@ function App() {
     );
   }
   return (
-    <ConfigProvider
-      theme={{
-        token: {
-          // Seed Token，影响范围大
-          colorPrimary: "#00b96b",
-          borderRadius: 20,
-
-          // 派生变量，影响范围小
-          colorBgContainer: "#fff",
-        },
-      }}
-    >
+    <ConfigProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route

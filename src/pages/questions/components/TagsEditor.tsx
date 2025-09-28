@@ -1,6 +1,6 @@
 import React from "react";
 import { Form, Select, Tag, Space, message } from "antd";
-import { Question } from "../api/types";
+import { Question } from "../../../api/types";
 
 const FormItem = Form.Item;
 
@@ -37,13 +37,13 @@ const TagsEditor: React.FC<TagsEditorProps> = ({
       const values = await form.validateFields();
       const newTags = values.tags || [];
       const oldTags = question.tags || [];
-      
+
       // 检查标签是否实际发生了变化
-      const tagsChanged = 
-        newTags.length !== oldTags.length || 
-        !newTags.every(tag => oldTags.includes(tag)) ||
-        !oldTags.every(tag => newTags.includes(tag));
-      
+      const tagsChanged =
+        newTags.length !== oldTags.length ||
+        !newTags.every((tag) => oldTags.includes(tag)) ||
+        !oldTags.every((tag) => newTags.includes(tag));
+
       // 只有在标签发生变化时才触发更新
       if (tagsChanged) {
         // 创建更新后的题目对象，参照 QuestionForm.tsx 的实现
@@ -63,7 +63,7 @@ const TagsEditor: React.FC<TagsEditorProps> = ({
         };
         await onSave(updatedQuestion);
       }
-      
+
       onCancel();
     } catch (error) {
       console.error("保存标签失败:", error);
@@ -74,10 +74,7 @@ const TagsEditor: React.FC<TagsEditorProps> = ({
   if (isEditing) {
     return (
       <Form form={form} initialValues={{ tags: question.tags }}>
-        <FormItem
-          name="tags"
-          rules={[{ required: false }]}
-        >
+        <FormItem name="tags" rules={[{ required: false }]}>
           <Select
             mode="tags"
             style={{ width: "100%" }}
@@ -91,10 +88,7 @@ const TagsEditor: React.FC<TagsEditorProps> = ({
   }
 
   return (
-    <div
-      style={{ cursor: "pointer" }}
-      onClick={handleEdit}
-    >
+    <div style={{ cursor: "pointer" }} onClick={handleEdit}>
       <Space size="small">
         {question.tags?.map((tag, index) => (
           <Tag key={index}>{tag}</Tag>
@@ -109,4 +103,4 @@ const TagsEditor: React.FC<TagsEditorProps> = ({
   );
 };
 
-export default TagsEditor;
+export { TagsEditor };

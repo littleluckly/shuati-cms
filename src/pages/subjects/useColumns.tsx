@@ -8,6 +8,7 @@ import { AnyObject } from "antd/es/_util/type";
 const { Title, Text } = Typography;
 
 export default (handleDelete: (id: string, name: string) => void) => {
+  console.log("render columns");
   const navigate = useNavigate();
   const columns: ColumnsType<AnyObject> = [
     {

@@ -1,10 +1,9 @@
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback, useState, useMemo } from "react";
 import {
   Table,
   Button,
   Input,
   Space,
-  Tag,
   Popconfirm,
   Typography,
   Card,
@@ -24,8 +23,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useQuestion } from "../../contexts/QuestionContext";
 import { useSubject } from "../../contexts/SubjectContext";
-import DifficultyEditor from "../../components/DifficultyEditor";
-import TagsEditor from "../../components/TagsEditor";
+import { useQuestionTableColumns } from "./hooks/useQuestionTableColumns";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -59,7 +57,6 @@ const QuestionList = () => {
   const [editingTagsId, setEditingTagsId] = useState<string | null>(null);
   const [form] = Form.useForm();
 
-
   // 当科目列表加载后，默认选择第一个科目
   useEffect(() => {
     if (subjects.length > 0 && !activeSubjectId) {
@@ -78,67 +75,88 @@ const QuestionList = () => {
   }, [setSearchText]);
 
   // 处理科目切换
-  const handleSubjectChange = (subjectId: string) => {
-    console.log("切换科目:", subjectId);
-    setActiveSubjectId(subjectId);
-    // 重置筛选条件
-    setSearchText("");
-    setTypeFilter("all");
-    setDifficultyFilter("all");
-    // 根据科目获取题目
-    fetchQuestions({
-      page: 1,
-      limit: pageSize,
-      subjectId: subjectId,
-    });
-  };
+  const handleSubjectChange = useCallback(
+    (subjectId: string) => {
+      console.log("切换科目:", subjectId);
+      setActiveSubjectId(subjectId);
+      // 重置筛选条件
+      setSearchText("");
+      setTypeFilter("all");
+      setDifficultyFilter("all");
+      // 根据科目获取题目
+      fetchQuestions({
+        page: 1,
+        limit: pageSize,
+        subjectId: subjectId,
+      });
+    },
+    [
+      setSearchText,
+      setTypeFilter,
+      setDifficultyFilter,
+      fetchQuestions,
+      pageSize,
+    ]
+  );
 
   // 处理页码变化
-  const handlePageChange = (page: number) => {
-    fetchQuestions({
-      page,
-      limit: pageSize,
-      subjectId: activeSubjectId,
-    });
-  };
+  const handlePageChange = useCallback(
+    (page: number) => {
+      fetchQuestions({
+        page,
+        limit: pageSize,
+        subjectId: activeSubjectId,
+      });
+    },
+    [fetchQuestions, pageSize, activeSubjectId]
+  );
 
   // 处理搜索
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     fetchQuestions({
       page: 1,
       limit: pageSize,
       subjectId: activeSubjectId,
     });
-  };
+  }, [fetchQuestions, pageSize, activeSubjectId]);
 
   // 处理类型筛选
-  const handleTypeFilterChange = (value: string) => {
-    setTypeFilter(value);
-    fetchQuestions({
-      page: 1,
-      limit: pageSize,
-      subjectId: activeSubjectId,
-    });
-  };
+  const handleTypeFilterChange = useCallback(
+    (value: string) => {
+      setTypeFilter(value);
+      fetchQuestions({
+        page: 1,
+        limit: pageSize,
+        subjectId: activeSubjectId,
+      });
+    },
+    [setTypeFilter, fetchQuestions, pageSize, activeSubjectId]
+  );
 
   // 处理难度筛选
-  const handleDifficultyFilterChange = (value: string) => {
-    setDifficultyFilter(value);
-    fetchQuestions({
-      page: 1,
-      limit: pageSize,
-      subjectId: activeSubjectId,
-    });
-  };
+  const handleDifficultyFilterChange = useCallback(
+    (value: string) => {
+      setDifficultyFilter(value);
+      fetchQuestions({
+        page: 1,
+        limit: pageSize,
+        subjectId: activeSubjectId,
+      });
+    },
+    [setDifficultyFilter, fetchQuestions, pageSize, activeSubjectId]
+  );
 
   // 处理每页显示条数变化
-  const handlePageSizeChange = (_: number, size: number) => {
-    fetchQuestions({
-      page: currentPage,
-      limit: size,
-      subjectId: activeSubjectId,
-    });
-  };
+  const handlePageSizeChange = useCallback(
+    (_: number, size: number) => {
+      fetchQuestions({
+        page: currentPage,
+        limit: size,
+        subjectId: activeSubjectId,
+      });
+    },
+    [fetchQuestions, currentPage, activeSubjectId]
+  );
 
   // 初始化获取科目列表
   useEffect(() => {
@@ -146,7 +164,7 @@ const QuestionList = () => {
   }, []);
 
   // 格式化类型显示
-  const getTypeDisplay = (type) => {
+  const getTypeDisplay = useCallback((type: string) => {
     switch (type) {
       case "choice":
         return "选择题";
@@ -160,101 +178,21 @@ const QuestionList = () => {
       default:
         return type;
     }
-  };
+  }, []);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  const columns = [
-    {
-      title: "题目",
-      dataIndex: "question_markdown",
-      key: "question_markdown",
-      ellipsis: true,
-      width: "30%",
-    },
-    {
-      title: "类型",
-      dataIndex: "type",
-      key: "type",
-      render: (type) => getTypeDisplay(type),
-    },
-    {
-      title: "难度",
-      dataIndex: "difficulty",
-      key: "difficulty",
-      render: (difficulty, record) => (
-        <DifficultyEditor
-          question={record}
-          isEditing={editingId === record._id}
-          onEdit={() => setEditingId(record._id)}
-          onSave={async (updatedQuestion) => {
-            await handleUpdateDifficulty(updatedQuestion, activeSubjectId);
-          }}
-          onCancel={() => setEditingId(null)}
-          activeSubjectId={activeSubjectId}
-        />
-      ),
-    },
-    {
-      title: "标签",
-      dataIndex: "tags",
-      key: "tags",
-      render: (tags, record) => (
-        <TagsEditor
-          question={record}
-          isEditing={editingTagsId === record._id}
-          onEdit={() => setEditingTagsId(record._id)}
-          onSave={async (updatedQuestion) => {
-            await handleUpdateTags(updatedQuestion, activeSubjectId);
-          }}
-          onCancel={() => setEditingTagsId(null)}
-          activeSubjectId={activeSubjectId}
-        />
-      ),
-    },
-    {
-      title: "创建时间",
-      dataIndex: "created_at",
-      key: "created_at",
-    },
-    {
-      title: "操作",
-      key: "action",
-      render: (_, record) => (
-        <Space size="middle">
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => navigate(`/questions/edit/${record._id}`)}
-          >
-            编辑
-          </Button>
-          <Popconfirm
-            title="确定要删除这个题目吗？"
-            onConfirm={() => handleDelete(record._id, record.subjectId)}
-            okText="是"
-            cancelText="否"
-          >
-            <Button type="text" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
+  // 使用自定义hook获取表格列配置
+  const columns = useQuestionTableColumns({
+    navigate,
+    editingId,
+    editingTagsId,
+    setEditingId,
+    setEditingTagsId,
+    handleUpdateDifficulty,
+    handleUpdateTags,
+    handleDelete,
+    activeSubjectId,
+    getTypeDisplay,
+  });
 
   return (
     <div>

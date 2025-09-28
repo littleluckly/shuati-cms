@@ -1,6 +1,6 @@
 import React from "react";
 import { Form, Select, Tag, message } from "antd";
-import { Question } from "../api/types";
+import { Question } from "../../../api/types";
 
 const { Option } = Select;
 const FormItem = Form.Item;
@@ -52,10 +52,10 @@ const DifficultyEditor: React.FC<DifficultyEditorProps> = ({
       const values = await form.validateFields();
       const newDifficulty = values.difficulty;
       const oldDifficulty = question.difficulty;
-      
+
       // 检查难度是否实际发生了变化
       const difficultyChanged = newDifficulty !== oldDifficulty;
-      
+
       // 只有在难度发生变化时才触发更新
       if (difficultyChanged) {
         // 创建更新后的题目对象，参照 QuestionForm.tsx 的实现
@@ -75,7 +75,7 @@ const DifficultyEditor: React.FC<DifficultyEditorProps> = ({
         };
         await onSave(updatedQuestion);
       }
-      
+
       onCancel();
     } catch (error) {
       console.error("保存难度失败:", error);
@@ -90,11 +90,7 @@ const DifficultyEditor: React.FC<DifficultyEditorProps> = ({
           name="difficulty"
           rules={[{ required: true, message: "请选择难度" }]}
         >
-          <Select
-            style={{ width: 100 }}
-            onBlur={handleSave}
-            autoFocus
-          >
+          <Select style={{ width: 100 }} onBlur={handleSave} autoFocus>
             <Option value="easy">简单</Option>
             <Option value="medium">中等</Option>
             <Option value="hard">困难</Option>
@@ -105,13 +101,10 @@ const DifficultyEditor: React.FC<DifficultyEditorProps> = ({
   }
 
   return (
-    <div
-      style={{ cursor: "pointer" }}
-      onClick={handleEdit}
-    >
+    <div style={{ cursor: "pointer" }} onClick={handleEdit}>
       {getDifficultyTag(question.difficulty)}
     </div>
   );
 };
 
-export default DifficultyEditor;
+export { DifficultyEditor };

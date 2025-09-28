@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   Button,
@@ -82,6 +82,10 @@ const SubjectList: React.FC = () => {
 
   const { columns } = useColumns(handleDelete);
 
+  // 初始化获取科目列表
+  useEffect(() => {
+    fetchSubjects({ page: 1, limit: pageSize });
+  }, []);
   return (
     <div>
       <div

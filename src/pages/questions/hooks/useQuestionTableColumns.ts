@@ -175,8 +175,8 @@ export const useQuestionTableColumns = ({
     },
     {
       title: "创建时间",
-      dataIndex: "created_at",
-      key: "created_at",
+      dataIndex: "createdAt",
+      key: "createdAt",
     },
     {
       title: "操作",

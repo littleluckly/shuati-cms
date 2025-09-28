@@ -28,7 +28,6 @@ import { useQuestionTableColumns } from "./hooks/useQuestionTableColumns";
 const { Title, Text } = Typography;
 const { Search } = Input;
 const { Option } = Select;
-const { TabPane } = Tabs;
 const { Item: FormItem } = Form;
 
 const QuestionList = () => {
@@ -201,18 +200,23 @@ const QuestionList = () => {
       </Title>
 
       <Card style={{ marginBottom: 24 }}>
-        <Tabs activeKey={activeSubjectId} onChange={handleSubjectChange}>
-          {subjects.map((subject) => (
-            <TabPane tab={subject.name} key={subject._id} />
-          ))}
-        </Tabs>
+        <Tabs
+          activeKey={activeSubjectId}
+          onChange={handleSubjectChange}
+          items={subjects.map((subject) => ({
+            key: subject._id,
+            label: subject.name,
+          }))}
+        />
 
         <Row gutter={[16, 16]} align="middle" style={{ marginTop: 16 }}>
           <Col xs={24} sm={12} md={8} lg={6}>
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={() => navigate("/questions/new")}
+              onClick={() =>
+                navigate(`/questions/new?subjectId=${activeSubjectId}`)
+              }
             >
               新增题目
             </Button>

@@ -13,12 +13,13 @@ import {
   InputNumber,
   Checkbox,
 } from "antd";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import MDEditor from "@uiw/react-md-editor";
 import { v4 as uuidv4 } from "uuid";
 import { RouteParams } from "../../types";
 import { QuestionOption } from "../../api/types";
 import { useQuestion } from "../../contexts/QuestionContext";
+import { useSubject } from "../../contexts/SubjectContext";
 import {
   getQuestionById,
   createQuestion,
@@ -37,10 +38,20 @@ const QuestionForm = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const { id } = useParams<RouteParams>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const isEditing = !!id;
 
-  // 获取QuestionContext中的方法
+  // 获取URL参数中的subjectId
+  const subjectIdFromUrl = searchParams.get("subjectId");
+
+  // 获取QuestionContext和SubjectContext中的方法
   const { fetchQuestions } = useQuestion();
+  const { subjects, fetchSubjects } = useSubject();
+
+  // 组件挂载时获取科目列表
+  useEffect(() => {
+    fetchSubjects();
+  }, []); // 空依赖数组，确保只在组件挂载时执行一次
 
   // 初始化表单数据
   useEffect(() => {
@@ -101,8 +112,15 @@ const QuestionForm = () => {
         { id: uuidv4(), content: "", isCorrect: false },
         { id: uuidv4(), content: "", isCorrect: false },
       ]);
+
+      // 如果有从URL传递的subjectId，设置为默认值
+      if (subjectIdFromUrl) {
+        form.setFieldsValue({
+          subjectId: subjectIdFromUrl,
+        });
+      }
     }
-  }, [form, id, isEditing]);
+  }, [form, id, isEditing, subjectIdFromUrl]); // 移除 fetchSubjects 依赖项
 
   // 添加选项
   const addOption = () => {
@@ -315,8 +333,11 @@ const QuestionForm = () => {
             rules={[{ required: true, message: "请选择所属科目" }]}
           >
             <Select placeholder="请选择所属科目">
-              <Option value="68c38c2355855886d48562d2">默认科目</Option>
-              {/* 实际项目中这里会从API获取科目列表 */}
+              {subjects.map((subject) => (
+                <Option key={subject._id} value={subject._id}>
+                  {subject.name}
+                </Option>
+              ))}
             </Select>
           </Form.Item>
 

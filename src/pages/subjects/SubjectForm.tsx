@@ -81,6 +81,7 @@ const SubjectForm: React.FC = () => {
         // 编辑模式
         const updateParams: UpdateSubjectParams = {
           name: values.name,
+          code: values.code,
           description: values.description,
           isEnabled: values.isEnabled,
         };
@@ -147,7 +148,6 @@ const SubjectForm: React.FC = () => {
               message: "科目代码只能包含字母、数字和下划线",
             },
           ]}
-          hidden={isEditing} // 编辑模式下不允许修改科目代码
         >
           <Input placeholder="请输入科目代码（唯一标识，只能包含字母、数字和下划线）" />
         </Form.Item>
@@ -163,7 +163,7 @@ const SubjectForm: React.FC = () => {
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" loading={loading}>
+          <Button type="primary" onClick={handleSubmit} loading={loading}>
             {isEditing ? "更新科目" : "创建科目"}
           </Button>
         </Form.Item>

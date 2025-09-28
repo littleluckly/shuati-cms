@@ -104,6 +104,7 @@ export interface CreateSubjectParams {
 // 更新科目参数类型
 export interface UpdateSubjectParams {
   name?: string;
+  code?: string;
   description?: string;
   tags?: SubjectTag[];
   userTags?: SubjectTag[];

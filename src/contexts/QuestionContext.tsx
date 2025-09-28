@@ -6,7 +6,7 @@ import React, {
   ReactNode,
   useCallback,
 } from "react";
-import { getQuestions, deleteQuestion } from "../api/questions";
+import { getQuestions, deleteQuestion, updateQuestion } from "../api/questions";
 import { Question } from "../api/types";
 import { message } from "antd";
 
@@ -29,6 +29,8 @@ interface QuestionContextType {
     limit?: number;
   }) => Promise<void>;
   handleDelete: (id: string, subjectId: string) => Promise<void>;
+  handleUpdateDifficulty: (question: Question, subjectId: string) => Promise<void>;
+  handleUpdateTags: (question: Question, subjectId: string) => Promise<void>;
 }
 
 // 创建上下文
@@ -114,6 +116,60 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({
     }
   };
 
+  // 更新题目难度
+  const handleUpdateDifficulty = async (question: Question, subjectId: string) => {
+    try {
+      // 构建完整的更新数据对象，参照 QuestionForm.tsx 的实现
+      const updateData = {
+        type: question.type,
+        difficulty: question.difficulty,
+        subjectId: question.subjectId,
+        tags: question.tags || [],
+        question_markdown: question.question_markdown,
+        answer_simple_markdown: question.answer_simple_markdown,
+        answer_detail_markdown: question.answer_detail_markdown,
+        answer_analysis_markdown: question.answer_analysis_markdown,
+        options: question.options,
+        files: question.files || {},
+      };
+      
+      await updateQuestion(question._id, updateData);
+      message.success("难度已更新");
+      // 更新后重新获取列表数据
+      await fetchQuestions({ subjectId });
+    } catch (error) {
+      console.error("更新题目难度错误:", error);
+      // 注意：错误处理已在request.ts中统一处理，这里可以根据需要添加额外的错误处理
+    }
+  };
+
+  // 更新题目标签
+  const handleUpdateTags = async (question: Question, subjectId: string) => {
+    try {
+      // 构建完整的更新数据对象，参照 QuestionForm.tsx 的实现
+      const updateData = {
+        type: question.type,
+        difficulty: question.difficulty,
+        subjectId: question.subjectId,
+        tags: question.tags || [],
+        question_markdown: question.question_markdown,
+        answer_simple_markdown: question.answer_simple_markdown,
+        answer_detail_markdown: question.answer_detail_markdown,
+        answer_analysis_markdown: question.answer_analysis_markdown,
+        options: question.options,
+        files: question.files || {},
+      };
+      
+      await updateQuestion(question._id, updateData);
+      message.success("标签已更新");
+      // 更新后重新获取列表数据
+      await fetchQuestions({ subjectId });
+    } catch (error) {
+      console.error("更新题目标签错误:", error);
+      // 注意：错误处理已在request.ts中统一处理，这里可以根据需要添加额外的错误处理
+    }
+  };
+
   // 无自动刷新逻辑，搜索和筛选仅通过手动触发fetchQuestions实现
 
   const contextValue: QuestionContextType = {
@@ -130,6 +186,8 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({
     setDifficultyFilter,
     fetchQuestions,
     handleDelete,
+    handleUpdateDifficulty,
+    handleUpdateTags,
   };
 
   return (

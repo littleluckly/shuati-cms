@@ -12,6 +12,8 @@ import {
   Col,
   Select,
   Tabs,
+  Form,
+  message,
 } from "antd";
 import {
   PlusOutlined,
@@ -22,11 +24,14 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useQuestion } from "../../contexts/QuestionContext";
 import { useSubject } from "../../contexts/SubjectContext";
+import DifficultyEditor from "../../components/DifficultyEditor";
+import TagsEditor from "../../components/TagsEditor";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
 const { Option } = Select;
 const { TabPane } = Tabs;
+const { Item: FormItem } = Form;
 
 const QuestionList = () => {
   const navigate = useNavigate();
@@ -44,10 +49,16 @@ const QuestionList = () => {
     setDifficultyFilter,
     handleDelete,
     fetchQuestions,
+    handleUpdateDifficulty,
+    handleUpdateTags,
   } = useQuestion();
 
   const { subjects, fetchSubjects } = useSubject();
   const [activeSubjectId, setActiveSubjectId] = useState<string>("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTagsId, setEditingTagsId] = useState<string | null>(null);
+  const [form] = Form.useForm();
+
 
   // 当科目列表加载后，默认选择第一个科目
   useEffect(() => {
@@ -151,19 +162,19 @@ const QuestionList = () => {
     }
   };
 
-  // 格式化难度标签
-  const getDifficultyTag = (difficulty) => {
-    switch (difficulty) {
-      case "easy":
-        return <Tag color="green">简单</Tag>;
-      case "medium":
-        return <Tag color="orange">中等</Tag>;
-      case "hard":
-        return <Tag color="red">困难</Tag>;
-      default:
-        return <Tag>{difficulty}</Tag>;
-    }
-  };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   const columns = [
     {
@@ -183,18 +194,34 @@ const QuestionList = () => {
       title: "难度",
       dataIndex: "difficulty",
       key: "difficulty",
-      render: (difficulty) => getDifficultyTag(difficulty),
+      render: (difficulty, record) => (
+        <DifficultyEditor
+          question={record}
+          isEditing={editingId === record._id}
+          onEdit={() => setEditingId(record._id)}
+          onSave={async (updatedQuestion) => {
+            await handleUpdateDifficulty(updatedQuestion, activeSubjectId);
+          }}
+          onCancel={() => setEditingId(null)}
+          activeSubjectId={activeSubjectId}
+        />
+      ),
     },
     {
       title: "标签",
       dataIndex: "tags",
       key: "tags",
-      render: (tags) => (
-        <Space size="small">
-          {tags?.map((tag, index) => (
-            <Tag key={index}>{tag}</Tag>
-          ))}
-        </Space>
+      render: (tags, record) => (
+        <TagsEditor
+          question={record}
+          isEditing={editingTagsId === record._id}
+          onEdit={() => setEditingTagsId(record._id)}
+          onSave={async (updatedQuestion) => {
+            await handleUpdateTags(updatedQuestion, activeSubjectId);
+          }}
+          onCancel={() => setEditingTagsId(null)}
+          activeSubjectId={activeSubjectId}
+        />
       ),
     },
     {

@@ -3,15 +3,23 @@ import { Button, Space, Popconfirm } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { DifficultyEditor } from "../components/DifficultyEditor";
 import { TagsEditor } from "../components/TagsEditor";
+import { QuestionEditor } from "../components/QuestionEditor";
+import { TypeEditor } from "../components/TypeEditor";
 
 interface UseQuestionTableColumnsProps {
   navigate: (path: string) => void;
   editingId: string | null;
   editingTagsId: string | null;
+  editingQuestionId: string | null;
+  editingTypeId: string | null;
   setEditingId: (id: string | null) => void;
   setEditingTagsId: (id: string | null) => void;
+  setEditingQuestionId: (id: string | null) => void;
+  setEditingTypeId: (id: string | null) => void;
   handleUpdateDifficulty: (question: any, subjectId: string) => Promise<void>;
   handleUpdateTags: (question: any, subjectId: string) => Promise<void>;
+  handleUpdateQuestion: (question: any, subjectId: string) => Promise<void>;
+  handleUpdateType: (question: any, subjectId: string) => Promise<void>;
   handleDelete: (id: string, subjectId: string) => Promise<void>;
   activeSubjectId: string;
   getTypeDisplay: (type: string) => string;
@@ -70,6 +78,60 @@ const TagsColumnRenderer = React.memo(({
 });
 
 // 使用 React.memo 包装渲染函数，避免不必要的重新渲染
+const QuestionColumnRenderer = React.memo(({
+  record,
+  editingQuestionId,
+  setEditingQuestionId,
+  handleUpdateQuestion,
+  activeSubjectId
+}: {
+  record: any;
+  editingQuestionId: string | null;
+  setEditingQuestionId: (id: string | null) => void;
+  handleUpdateQuestion: (question: any, subjectId: string) => Promise<void>;
+  activeSubjectId: string;
+}) => {
+  return React.createElement(QuestionEditor, {
+    question: record,
+    isEditing: editingQuestionId === record._id,
+    onEdit: () => setEditingQuestionId(record._id),
+    onSave: async (updatedQuestion: any) => {
+      await handleUpdateQuestion(updatedQuestion, activeSubjectId);
+    },
+    onCancel: () => setEditingQuestionId(null),
+    activeSubjectId: activeSubjectId,
+  });
+});
+
+// 使用 React.memo 包装渲染函数，避免不必要的重新渲染
+const TypeColumnRenderer = React.memo(({
+  record,
+  editingTypeId,
+  setEditingTypeId,
+  handleUpdateType,
+  activeSubjectId,
+  getTypeDisplay
+}: {
+  record: any;
+  editingTypeId: string | null;
+  setEditingTypeId: (id: string | null) => void;
+  handleUpdateType: (question: any, subjectId: string) => Promise<void>;
+  activeSubjectId: string;
+  getTypeDisplay: (type: string) => string;
+}) => {
+  return React.createElement(TypeEditor, {
+    question: record,
+    isEditing: editingTypeId === record._id,
+    onEdit: () => setEditingTypeId(record._id),
+    onSave: async (updatedQuestion: any) => {
+      await handleUpdateType(updatedQuestion, activeSubjectId);
+    },
+    onCancel: () => setEditingTypeId(null),
+    activeSubjectId: activeSubjectId,
+  });
+});
+
+// 使用 React.memo 包装渲染函数，避免不必要的重新渲染
 const ActionColumnRenderer = React.memo(({
   record,
   navigate,
@@ -104,10 +166,16 @@ export const useQuestionTableColumns = ({
   navigate,
   editingId,
   editingTagsId,
+  editingQuestionId,
+  editingTypeId,
   setEditingId,
   setEditingTagsId,
+  setEditingQuestionId,
+  setEditingTypeId,
   handleUpdateDifficulty,
   handleUpdateTags,
+  handleUpdateQuestion,
+  handleUpdateType,
   handleDelete,
   activeSubjectId,
   getTypeDisplay,
@@ -138,6 +206,29 @@ export const useQuestionTableColumns = ({
     , [editingTagsId, setEditingTagsId, handleUpdateTags, activeSubjectId]);
 
   // 使用 useCallback 包装函数，避免不必要的重新创建
+  const handleQuestionRender = useCallback((_: string, record: any) =>
+    React.createElement(QuestionColumnRenderer, {
+      record: record,
+      editingQuestionId: editingQuestionId,
+      setEditingQuestionId: setEditingQuestionId,
+      handleUpdateQuestion: handleUpdateQuestion,
+      activeSubjectId: activeSubjectId,
+    })
+    , [editingQuestionId, setEditingQuestionId, handleUpdateQuestion, activeSubjectId]);
+
+  // 使用 useCallback 包装函数，避免不必要的重新创建
+  const handleTypeColumnRender = useCallback((_: string, record: any) =>
+    React.createElement(TypeColumnRenderer, {
+      record: record,
+      editingTypeId: editingTypeId,
+      setEditingTypeId: setEditingTypeId,
+      handleUpdateType: handleUpdateType,
+      activeSubjectId: activeSubjectId,
+      getTypeDisplay: getTypeDisplay,
+    })
+    , [editingTypeId, setEditingTypeId, handleUpdateType, activeSubjectId, getTypeDisplay]);
+
+  // 使用 useCallback 包装函数，避免不必要的重新创建
   const handleActionRender = useCallback((_: any, record: any) =>
     React.createElement(ActionColumnRenderer, {
       record: record,
@@ -154,12 +245,13 @@ export const useQuestionTableColumns = ({
       key: "question_markdown",
       ellipsis: true,
       width: "30%",
+      render: handleQuestionRender,
     },
     {
       title: "类型",
       dataIndex: "type",
       key: "type",
-      render: handleTypeRender,
+      render: handleTypeColumnRender,
     },
     {
       title: "难度",
@@ -184,6 +276,8 @@ export const useQuestionTableColumns = ({
       render: handleActionRender,
     },
   ], [
+    handleQuestionRender,
+    handleTypeColumnRender,
     handleTypeRender,
     handleDifficultyRender,
     handleTagsRender,

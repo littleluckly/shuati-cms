@@ -48,12 +48,16 @@ const QuestionList = () => {
     fetchQuestions,
     handleUpdateDifficulty,
     handleUpdateTags,
+    handleUpdateQuestion,
+    handleUpdateType,
   } = useQuestion();
 
   const { subjects, fetchSubjects } = useSubject();
   const [activeSubjectId, setActiveSubjectId] = useState<string>("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTagsId, setEditingTagsId] = useState<string | null>(null);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [editingTypeId, setEditingTypeId] = useState<string | null>(null);
   const [form] = Form.useForm();
 
   // 当科目列表加载后，默认选择第一个科目
@@ -184,10 +188,16 @@ const QuestionList = () => {
     navigate,
     editingId,
     editingTagsId,
+    editingQuestionId,
+    editingTypeId,
     setEditingId,
     setEditingTagsId,
+    setEditingQuestionId,
+    setEditingTypeId,
     handleUpdateDifficulty,
     handleUpdateTags,
+    handleUpdateQuestion,
+    handleUpdateType,
     handleDelete,
     activeSubjectId,
     getTypeDisplay,

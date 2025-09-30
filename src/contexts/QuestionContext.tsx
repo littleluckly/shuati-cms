@@ -29,9 +29,15 @@ interface QuestionContextType {
     limit?: number;
   }) => Promise<void>;
   handleDelete: (id: string, subjectId: string) => Promise<void>;
-  handleUpdateDifficulty: (question: Question, subjectId: string) => Promise<void>;
+  handleUpdateDifficulty: (
+    question: Question,
+    subjectId: string
+  ) => Promise<void>;
   handleUpdateTags: (question: Question, subjectId: string) => Promise<void>;
-  handleUpdateQuestion: (question: Question, subjectId: string) => Promise<void>;
+  handleUpdateQuestion: (
+    question: Question,
+    subjectId: string
+  ) => Promise<void>;
   handleUpdateType: (question: Question, subjectId: string) => Promise<void>;
 }
 
@@ -118,112 +124,66 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({
     }
   };
 
-  // 更新题目难度
-  const handleUpdateDifficulty = async (question: Question, subjectId: string) => {
+  // 创建通用的更新数据对象
+  const createUpdateData = (question: Question) => {
+    return {
+      type: question.type,
+      difficulty: question.difficulty,
+      subjectId: question.subjectId,
+      tags: question.tags || [],
+      question_markdown: question.question_markdown,
+      answer_simple_markdown: question.answer_simple_markdown,
+      answer_detail_markdown: question.answer_detail_markdown,
+      answer_analysis_markdown: question.answer_analysis_markdown,
+      options: question.options,
+      files: question.files || {},
+    };
+  };
+
+  // 通用的更新方法
+  const handleUpdateQuestionGeneric = async (
+    question: Question,
+    subjectId: string,
+    successMessage: string
+  ) => {
     try {
-      // 构建完整的更新数据对象，参照 QuestionForm.tsx 的实现
-      const updateData = {
-        type: question.type,
-        difficulty: question.difficulty,
-        subjectId: question.subjectId,
-        tags: question.tags || [],
-        question_markdown: question.question_markdown,
-        answer_simple_markdown: question.answer_simple_markdown,
-        answer_detail_markdown: question.answer_detail_markdown,
-        answer_analysis_markdown: question.answer_analysis_markdown,
-        options: question.options,
-        files: question.files || {},
-      };
-      
+      // 构建完整的更新数据对象
+      const updateData = createUpdateData(question);
+
       await updateQuestion(question._id, updateData);
-      message.success("难度已更新");
+      message.success(successMessage);
       // 更新后重新获取列表数据
       await fetchQuestions({ subjectId });
     } catch (error) {
-      console.error("更新题目难度错误:", error);
+      console.error(`更新题目错误:`, error);
       // 注意：错误处理已在request.ts中统一处理，这里可以根据需要添加额外的错误处理
     }
+  };
+
+  // 更新题目难度
+  const handleUpdateDifficulty = async (
+    question: Question,
+    subjectId: string
+  ) => {
+    await handleUpdateQuestionGeneric(question, subjectId, "难度已更新");
   };
 
   // 更新题目标签
   const handleUpdateTags = async (question: Question, subjectId: string) => {
-    try {
-      // 构建完整的更新数据对象，参照 QuestionForm.tsx 的实现
-      const updateData = {
-        type: question.type,
-        difficulty: question.difficulty,
-        subjectId: question.subjectId,
-        tags: question.tags || [],
-        question_markdown: question.question_markdown,
-        answer_simple_markdown: question.answer_simple_markdown,
-        answer_detail_markdown: question.answer_detail_markdown,
-        answer_analysis_markdown: question.answer_analysis_markdown,
-        options: question.options,
-        files: question.files || {},
-      };
-      
-      await updateQuestion(question._id, updateData);
-      message.success("标签已更新");
-      // 更新后重新获取列表数据
-      await fetchQuestions({ subjectId });
-    } catch (error) {
-      console.error("更新题目标签错误:", error);
-      // 注意：错误处理已在request.ts中统一处理，这里可以根据需要添加额外的错误处理
-    }
+    await handleUpdateQuestionGeneric(question, subjectId, "标签已更新");
   };
 
   // 更新题目内容
-  const handleUpdateQuestion = async (question: Question, subjectId: string) => {
-    try {
-      // 构建完整的更新数据对象
-      const updateData = {
-        type: question.type,
-        difficulty: question.difficulty,
-        subjectId: question.subjectId,
-        tags: question.tags || [],
-        question_markdown: question.question_markdown,
-        answer_simple_markdown: question.answer_simple_markdown,
-        answer_detail_markdown: question.answer_detail_markdown,
-        answer_analysis_markdown: question.answer_analysis_markdown,
-        options: question.options,
-        files: question.files || {},
-      };
-      
-      await updateQuestion(question._id, updateData);
-      message.success("题目内容已更新");
-      // 更新后重新获取列表数据
-      await fetchQuestions({ subjectId });
-    } catch (error) {
-      console.error("更新题目内容错误:", error);
-      // 注意：错误处理已在request.ts中统一处理，这里可以根据需要添加额外的错误处理
-    }
+  const handleUpdateQuestion = async (
+    question: Question,
+    subjectId: string
+  ) => {
+    await handleUpdateQuestionGeneric(question, subjectId, "题目标题已更新");
   };
 
   // 更新题目类型
   const handleUpdateType = async (question: Question, subjectId: string) => {
-    try {
-      // 构建完整的更新数据对象
-      const updateData = {
-        type: question.type,
-        difficulty: question.difficulty,
-        subjectId: question.subjectId,
-        tags: question.tags || [],
-        question_markdown: question.question_markdown,
-        answer_simple_markdown: question.answer_simple_markdown,
-        answer_detail_markdown: question.answer_detail_markdown,
-        answer_analysis_markdown: question.answer_analysis_markdown,
-        options: question.options,
-        files: question.files || {},
-      };
-      
-      await updateQuestion(question._id, updateData);
-      message.success("题目类型已更新");
-      // 更新后重新获取列表数据
-      await fetchQuestions({ subjectId });
-    } catch (error) {
-      console.error("更新题目类型错误:", error);
-      // 注意：错误处理已在request.ts中统一处理，这里可以根据需要添加额外的错误处理
-    }
+    await handleUpdateQuestionGeneric(question, subjectId, "题目类型已更新");
   };
 
   // 无自动刷新逻辑，搜索和筛选仅通过手动触发fetchQuestions实现

@@ -56,8 +56,17 @@ const QuestionList = () => {
   const [activeSubjectId, setActiveSubjectId] = useState<string>("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTagsId, setEditingTagsId] = useState<string | null>(null);
-  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(
+    null
+  );
   const [editingTypeId, setEditingTypeId] = useState<string | null>(null);
+
+  // 批量编辑状态
+  const [isBatchEditing, setIsBatchEditing] = useState<boolean>(false);
+  const [batchEditingIds, setBatchEditingIds] = useState<Set<string>>(
+    new Set()
+  );
+
   const [form] = Form.useForm();
 
   // 当科目列表加载后，默认选择第一个科目
@@ -183,6 +192,33 @@ const QuestionList = () => {
     }
   }, []);
 
+  // 开始批量编辑
+  const startBatchEdit = useCallback(() => {
+    setIsBatchEditing(true);
+    // 初始化所有题目为批量编辑状态
+    const allIds = new Set(questions.map((q) => q._id));
+    setBatchEditingIds(allIds);
+  }, [questions]);
+
+  // 取消批量编辑
+  const cancelBatchEdit = useCallback(() => {
+    setIsBatchEditing(false);
+    setBatchEditingIds(new Set());
+
+    // 重置所有编辑状态
+    setEditingQuestionId(null);
+    setEditingTypeId(null);
+    setEditingId(null);
+    setEditingTagsId(null);
+  }, []);
+
+  // 保存批量编辑
+  const saveBatchEdit = useCallback(async () => {
+    // 在实际实现中，这里应该保存所有更改
+    message.success("批量保存成功");
+    cancelBatchEdit();
+  }, [cancelBatchEdit]);
+
   // 使用自定义hook获取表格列配置
   const columns = useQuestionTableColumns({
     navigate,
@@ -201,6 +237,9 @@ const QuestionList = () => {
     handleDelete,
     activeSubjectId,
     getTypeDisplay,
+    // 批量编辑相关参数
+    isBatchEditing,
+    batchEditingIds,
   });
 
   return (
@@ -221,15 +260,17 @@ const QuestionList = () => {
 
         <Row gutter={[16, 16]} align="middle" style={{ marginTop: 16 }}>
           <Col xs={24} sm={12} md={8} lg={6}>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() =>
-                navigate(`/questions/new?subjectId=${activeSubjectId}`)
-              }
-            >
-              新增题目
-            </Button>
+            <Space>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() =>
+                  navigate(`/questions/new?subjectId=${activeSubjectId}`)
+                }
+              >
+                新增题目
+              </Button>
+            </Space>
           </Col>
 
           <Col xs={24} sm={12} md={16} lg={18}>
@@ -278,6 +319,21 @@ const QuestionList = () => {
                 </Select>
               </Col>
             </Row>
+          </Col>
+        </Row>
+        <Row gutter={[16, 16]} align="middle" style={{ marginTop: 16 }}>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            {/* 批量编辑按钮 */}
+            {isBatchEditing ? (
+              <Space>
+                <Button type="primary" onClick={saveBatchEdit}>
+                  批量保存
+                </Button>
+                <Button onClick={cancelBatchEdit}>取消</Button>
+              </Space>
+            ) : (
+              <Button onClick={startBatchEdit}>批量编辑</Button>
+            )}
           </Col>
         </Row>
       </Card>

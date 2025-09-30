@@ -74,9 +74,10 @@ const DifficultyEditor: React.FC<DifficultyEditorProps> = ({
           files: question.files || {},
         };
         await onSave(updatedQuestion);
+      } else {
+        // 如果没有变化，直接调用onCancel
+        onCancel();
       }
-
-      onCancel();
     } catch (error) {
       console.error("保存难度失败:", error);
       message.error("保存难度失败");

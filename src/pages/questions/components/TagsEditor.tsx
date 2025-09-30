@@ -62,9 +62,10 @@ const TagsEditor: React.FC<TagsEditorProps> = ({
           files: question.files || {},
         };
         await onSave(updatedQuestion);
+      } else {
+        // 如果没有变化，直接调用onCancel
+        onCancel();
       }
-
-      onCancel();
     } catch (error) {
       console.error("保存标签失败:", error);
       message.error("保存标签失败");

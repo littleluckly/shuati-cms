@@ -23,6 +23,9 @@ interface UseQuestionTableColumnsProps {
   handleDelete: (id: string, subjectId: string) => Promise<void>;
   activeSubjectId: string;
   getTypeDisplay: (type: string) => string;
+  // 批量编辑相关参数
+  isBatchEditing: boolean;
+  batchEditingIds: Set<string>;
 }
 
 // 使用 React.memo 包装渲染函数，避免不必要的重新渲染
@@ -31,17 +34,24 @@ const DifficultyColumnRenderer = React.memo(({
   editingId,
   setEditingId,
   handleUpdateDifficulty,
-  activeSubjectId
+  activeSubjectId,
+  isBatchEditing,
+  batchEditingIds
 }: {
   record: any;
   editingId: string | null;
   setEditingId: (id: string | null) => void;
   handleUpdateDifficulty: (question: any, subjectId: string) => Promise<void>;
   activeSubjectId: string;
+  isBatchEditing: boolean;
+  batchEditingIds: Set<string>;
 }) => {
+  // 在批量编辑模式下，如果当前记录在批量编辑集合中，则显示编辑器
+  const isEditing = isBatchEditing ? batchEditingIds.has(record._id) : editingId === record._id;
+  
   return React.createElement(DifficultyEditor, {
     question: record,
-    isEditing: editingId === record._id,
+    isEditing: isEditing,
     onEdit: () => setEditingId(record._id),
     onSave: async (updatedQuestion: any) => {
       await handleUpdateDifficulty(updatedQuestion, activeSubjectId);
@@ -57,17 +67,24 @@ const TagsColumnRenderer = React.memo(({
   editingTagsId,
   setEditingTagsId,
   handleUpdateTags,
-  activeSubjectId
+  activeSubjectId,
+  isBatchEditing,
+  batchEditingIds
 }: {
   record: any;
   editingTagsId: string | null;
   setEditingTagsId: (id: string | null) => void;
   handleUpdateTags: (question: any, subjectId: string) => Promise<void>;
   activeSubjectId: string;
+  isBatchEditing: boolean;
+  batchEditingIds: Set<string>;
 }) => {
+  // 在批量编辑模式下，如果当前记录在批量编辑集合中，则显示编辑器
+  const isEditing = isBatchEditing ? batchEditingIds.has(record._id) : editingTagsId === record._id;
+  
   return React.createElement(TagsEditor, {
     question: record,
-    isEditing: editingTagsId === record._id,
+    isEditing: isEditing,
     onEdit: () => setEditingTagsId(record._id),
     onSave: async (updatedQuestion: any) => {
       await handleUpdateTags(updatedQuestion, activeSubjectId);
@@ -83,17 +100,24 @@ const QuestionColumnRenderer = React.memo(({
   editingQuestionId,
   setEditingQuestionId,
   handleUpdateQuestion,
-  activeSubjectId
+  activeSubjectId,
+  isBatchEditing,
+  batchEditingIds
 }: {
   record: any;
   editingQuestionId: string | null;
   setEditingQuestionId: (id: string | null) => void;
   handleUpdateQuestion: (question: any, subjectId: string) => Promise<void>;
   activeSubjectId: string;
+  isBatchEditing: boolean;
+  batchEditingIds: Set<string>;
 }) => {
+  // 在批量编辑模式下，如果当前记录在批量编辑集合中，则显示编辑器
+  const isEditing = isBatchEditing ? batchEditingIds.has(record._id) : editingQuestionId === record._id;
+  
   return React.createElement(QuestionEditor, {
     question: record,
-    isEditing: editingQuestionId === record._id,
+    isEditing: isEditing,
     onEdit: () => setEditingQuestionId(record._id),
     onSave: async (updatedQuestion: any) => {
       await handleUpdateQuestion(updatedQuestion, activeSubjectId);
@@ -110,7 +134,9 @@ const TypeColumnRenderer = React.memo(({
   setEditingTypeId,
   handleUpdateType,
   activeSubjectId,
-  getTypeDisplay
+  getTypeDisplay,
+  isBatchEditing,
+  batchEditingIds
 }: {
   record: any;
   editingTypeId: string | null;
@@ -118,10 +144,15 @@ const TypeColumnRenderer = React.memo(({
   handleUpdateType: (question: any, subjectId: string) => Promise<void>;
   activeSubjectId: string;
   getTypeDisplay: (type: string) => string;
+  isBatchEditing: boolean;
+  batchEditingIds: Set<string>;
 }) => {
+  // 在批量编辑模式下，如果当前记录在批量编辑集合中，则显示编辑器
+  const isEditing = isBatchEditing ? batchEditingIds.has(record._id) : editingTypeId === record._id;
+  
   return React.createElement(TypeEditor, {
     question: record,
-    isEditing: editingTypeId === record._id,
+    isEditing: isEditing,
     onEdit: () => setEditingTypeId(record._id),
     onSave: async (updatedQuestion: any) => {
       await handleUpdateType(updatedQuestion, activeSubjectId);
@@ -179,6 +210,9 @@ export const useQuestionTableColumns = ({
   handleDelete,
   activeSubjectId,
   getTypeDisplay,
+  // 批量编辑相关参数
+  isBatchEditing,
+  batchEditingIds,
 }: UseQuestionTableColumnsProps) => {
   // 使用 useCallback 包装函数，避免不必要的重新创建
   const handleTypeRender = useCallback((type: string) => getTypeDisplay(type), [getTypeDisplay]);
@@ -191,8 +225,10 @@ export const useQuestionTableColumns = ({
       setEditingId: setEditingId,
       handleUpdateDifficulty: handleUpdateDifficulty,
       activeSubjectId: activeSubjectId,
+      isBatchEditing: isBatchEditing,
+      batchEditingIds: batchEditingIds,
     })
-    , [editingId, setEditingId, handleUpdateDifficulty, activeSubjectId]);
+    , [editingId, setEditingId, handleUpdateDifficulty, activeSubjectId, isBatchEditing, batchEditingIds]);
 
   // 使用 useCallback 包装函数，避免不必要的重新创建
   const handleTagsRender = useCallback((_: string[], record: any) =>
@@ -202,8 +238,10 @@ export const useQuestionTableColumns = ({
       setEditingTagsId: setEditingTagsId,
       handleUpdateTags: handleUpdateTags,
       activeSubjectId: activeSubjectId,
+      isBatchEditing: isBatchEditing,
+      batchEditingIds: batchEditingIds,
     })
-    , [editingTagsId, setEditingTagsId, handleUpdateTags, activeSubjectId]);
+    , [editingTagsId, setEditingTagsId, handleUpdateTags, activeSubjectId, isBatchEditing, batchEditingIds]);
 
   // 使用 useCallback 包装函数，避免不必要的重新创建
   const handleQuestionRender = useCallback((_: string, record: any) =>
@@ -213,8 +251,10 @@ export const useQuestionTableColumns = ({
       setEditingQuestionId: setEditingQuestionId,
       handleUpdateQuestion: handleUpdateQuestion,
       activeSubjectId: activeSubjectId,
+      isBatchEditing: isBatchEditing,
+      batchEditingIds: batchEditingIds,
     })
-    , [editingQuestionId, setEditingQuestionId, handleUpdateQuestion, activeSubjectId]);
+    , [editingQuestionId, setEditingQuestionId, handleUpdateQuestion, activeSubjectId, isBatchEditing, batchEditingIds]);
 
   // 使用 useCallback 包装函数，避免不必要的重新创建
   const handleTypeColumnRender = useCallback((_: string, record: any) =>
@@ -225,8 +265,10 @@ export const useQuestionTableColumns = ({
       handleUpdateType: handleUpdateType,
       activeSubjectId: activeSubjectId,
       getTypeDisplay: getTypeDisplay,
+      isBatchEditing: isBatchEditing,
+      batchEditingIds: batchEditingIds,
     })
-    , [editingTypeId, setEditingTypeId, handleUpdateType, activeSubjectId, getTypeDisplay]);
+    , [editingTypeId, setEditingTypeId, handleUpdateType, activeSubjectId, getTypeDisplay, isBatchEditing, batchEditingIds]);
 
   // 使用 useCallback 包装函数，避免不必要的重新创建
   const handleActionRender = useCallback((_: any, record: any) =>

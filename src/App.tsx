@@ -45,7 +45,8 @@ function App() {
           backgroundColor: colorBgContainer,
         }}
       >
-        <Spin size="large" tip="加载中..." />
+        <Spin size="large" />
+        <div style={{ marginLeft: 16 }}>加载中...</div>
       </div>
     );
   }

@@ -50,6 +50,7 @@ const QuestionList = () => {
     handleUpdateTags,
     handleUpdateQuestion,
     handleUpdateType,
+    handleUpdateStatus,
   } = useQuestion();
 
   const { subjects, fetchSubjects } = useSubject();
@@ -60,6 +61,7 @@ const QuestionList = () => {
     null
   );
   const [editingTypeId, setEditingTypeId] = useState<string | null>(null);
+  const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
 
   // 批量编辑状态
   const [isBatchEditing, setIsBatchEditing] = useState<boolean>(false);
@@ -258,6 +260,7 @@ const QuestionList = () => {
     setEditingTypeId(null);
     setEditingId(null);
     setEditingTagsId(null);
+    setEditingStatusId(null);
   }, []);
 
   // 保存批量编辑
@@ -274,14 +277,17 @@ const QuestionList = () => {
     editingTagsId,
     editingQuestionId,
     editingTypeId,
+    editingStatusId,
     setEditingId,
     setEditingTagsId,
     setEditingQuestionId,
     setEditingTypeId,
+    setEditingStatusId,
     handleUpdateDifficulty,
     handleUpdateTags,
     handleUpdateQuestion,
     handleUpdateType,
+    handleUpdateStatus,
     handleDelete,
     activeSubjectId,
     getTypeDisplay,

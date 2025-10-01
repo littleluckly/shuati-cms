@@ -6,6 +6,7 @@ import { DifficultyEditor } from "../components/DifficultyEditor";
 import { TagsEditor } from "../components/TagsEditor";
 import { QuestionEditor } from "../components/QuestionEditor";
 import { TypeEditor } from "../components/TypeEditor";
+import { StatusEditor } from "../components/StatusEditor";
 
 interface UseQuestionTableColumnsProps {
   navigate: (path: string) => void;
@@ -13,14 +14,17 @@ interface UseQuestionTableColumnsProps {
   editingTagsId: string | null;
   editingQuestionId: string | null;
   editingTypeId: string | null;
+  editingStatusId: string | null;
   setEditingId: (id: string | null) => void;
   setEditingTagsId: (id: string | null) => void;
   setEditingQuestionId: (id: string | null) => void;
   setEditingTypeId: (id: string | null) => void;
+  setEditingStatusId: (id: string | null) => void;
   handleUpdateDifficulty: (question: any, subjectId: string) => Promise<void>;
   handleUpdateTags: (question: any, subjectId: string) => Promise<void>;
   handleUpdateQuestion: (question: any, subjectId: string) => Promise<void>;
   handleUpdateType: (question: any, subjectId: string) => Promise<void>;
+  handleUpdateStatus: (question: any, subjectId: string) => Promise<void>;
   handleDelete: (id: string, subjectId: string) => Promise<void>;
   activeSubjectId: string;
   getTypeDisplay: (type: string) => string;
@@ -180,6 +184,43 @@ const TypeColumnRenderer = React.memo(
 );
 
 // 使用 React.memo 包装渲染函数，避免不必要的重新渲染
+const StatusColumnRenderer = React.memo(
+  ({
+    record,
+    editingStatusId,
+    setEditingStatusId,
+    handleUpdateStatus,
+    activeSubjectId,
+    isBatchEditing,
+    batchEditingIds,
+  }: {
+    record: any;
+    editingStatusId: string | null;
+    setEditingStatusId: (id: string | null) => void;
+    handleUpdateStatus: (question: any, subjectId: string) => Promise<void>;
+    activeSubjectId: string;
+    isBatchEditing: boolean;
+    batchEditingIds: Set<string>;
+  }) => {
+    // 在批量编辑模式下，如果当前记录在批量编辑集合中，则显示编辑器
+    const isEditing = isBatchEditing
+      ? batchEditingIds.has(record._id)
+      : editingStatusId === record._id;
+
+    return React.createElement(StatusEditor, {
+      question: record,
+      isEditing: isEditing,
+      onEdit: () => setEditingStatusId(record._id),
+      onSave: async (updatedQuestion: any) => {
+        await handleUpdateStatus(updatedQuestion, activeSubjectId);
+      },
+      onCancel: () => setEditingStatusId(null),
+      activeSubjectId: activeSubjectId,
+    });
+  }
+);
+
+// 使用 React.memo 包装渲染函数，避免不必要的重新渲染
 const ActionColumnRenderer = React.memo(
   ({
     record,
@@ -230,14 +271,17 @@ export const useQuestionTableColumns = ({
   editingTagsId,
   editingQuestionId,
   editingTypeId,
+  editingStatusId,
   setEditingId,
   setEditingTagsId,
   setEditingQuestionId,
   setEditingTypeId,
+  setEditingStatusId,
   handleUpdateDifficulty,
   handleUpdateTags,
   handleUpdateQuestion,
   handleUpdateType,
+  handleUpdateStatus,
   handleDelete,
   activeSubjectId,
   getTypeDisplay,
@@ -342,6 +386,28 @@ export const useQuestionTableColumns = ({
   );
 
   // 使用 useCallback 包装函数，避免不必要的重新创建
+  const handleStatusRender = useCallback(
+    (_: boolean, record: any) =>
+      React.createElement(StatusColumnRenderer, {
+        record: record,
+        editingStatusId: editingStatusId,
+        setEditingStatusId: setEditingStatusId,
+        handleUpdateStatus: handleUpdateStatus,
+        activeSubjectId: activeSubjectId,
+        isBatchEditing: isBatchEditing,
+        batchEditingIds: batchEditingIds,
+      }),
+    [
+      editingStatusId,
+      setEditingStatusId,
+      handleUpdateStatus,
+      activeSubjectId,
+      isBatchEditing,
+      batchEditingIds,
+    ]
+  );
+
+  // 使用 useCallback 包装函数，避免不必要的重新创建
   const handleActionRender = useCallback(
     (_: any, record: any) =>
       React.createElement(ActionColumnRenderer, {
@@ -385,11 +451,7 @@ export const useQuestionTableColumns = ({
         title: "状态",
         dataIndex: "isEnabled",
         key: "isEnabled",
-        render: (_, { isEnabled }) => (
-          <span style={{ color: isEnabled ? "green" : "red" }}>
-            {isEnabled ? "启用" : "禁用"}
-          </span>
-        ),
+        render: handleStatusRender,
       },
       {
         title: "创建时间",
@@ -422,6 +484,7 @@ export const useQuestionTableColumns = ({
       handleTypeRender,
       handleDifficultyRender,
       handleTagsRender,
+      handleStatusRender,
       handleActionRender,
     ]
   );

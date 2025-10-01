@@ -41,6 +41,7 @@ interface QuestionContextType {
     subjectId: string
   ) => Promise<void>;
   handleUpdateType: (question: Question, subjectId: string) => Promise<void>;
+  handleUpdateStatus: (question: Question, subjectId: string) => Promise<void>;
 }
 
 // 创建上下文
@@ -151,6 +152,7 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({
       answer_analysis_markdown: question.answer_analysis_markdown,
       options: question.options,
       files: question.files || {},
+      isEnabled: question.isEnabled ?? true,
     };
   };
 
@@ -200,6 +202,11 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({
     await handleUpdateQuestionGeneric(question, subjectId, "题目类型已更新");
   };
 
+  // 更新题目状态
+  const handleUpdateStatus = async (question: Question, subjectId: string) => {
+    await handleUpdateQuestionGeneric(question, subjectId, "题目状态已更新");
+  };
+
   // 无自动刷新逻辑，搜索和筛选仅通过手动触发fetchQuestions实现
 
   const contextValue: QuestionContextType = {
@@ -220,6 +227,7 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({
     handleUpdateTags,
     handleUpdateQuestion,
     handleUpdateType,
+    handleUpdateStatus,
   };
 
   return (

@@ -27,6 +27,7 @@ interface QuestionContextType {
     subjectId: string;
     page?: number;
     limit?: number;
+    hasAudioFiles?: string;
   }) => Promise<void>;
   handleDelete: (id: string, subjectId: string) => Promise<void>;
   handleUpdateDifficulty: (
@@ -68,11 +69,12 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({
     subjectId: string;
     page?: number;
     limit?: number;
+    hasAudioFiles?: string;
   }) => {
     try {
       setLoading(true);
       // 构建API请求参数
-      const apiParams = {
+      const apiParams: any = {
         subjectId: params.subjectId,
         page: params?.page || 1,
         limit: params?.limit || 10,
@@ -91,6 +93,11 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({
       // 添加类型筛选（需要根据实际API支持的参数格式调整）
       if (typeFilter !== "all") {
         // 这里根据实际API支持的参数进行调整
+      }
+
+      // 添加音频文件筛选
+      if (params.hasAudioFiles !== undefined) {
+        apiParams["hasAudioFiles"] = params.hasAudioFiles === "true";
       }
 
       const response = await getQuestions(apiParams);

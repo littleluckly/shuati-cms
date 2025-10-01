@@ -66,6 +66,7 @@ const QuestionList = () => {
   const [batchEditingIds, setBatchEditingIds] = useState<Set<string>>(
     new Set()
   );
+  const [hasAudioFilesFilter, setHasAudioFilesFilter] = useState<string>("all");
 
   const [form] = Form.useForm();
 
@@ -95,17 +96,20 @@ const QuestionList = () => {
       setSearchText("");
       setTypeFilter("all");
       setDifficultyFilter("all");
+      setHasAudioFilesFilter("all");
       // 根据科目获取题目
       fetchQuestions({
         page: 1,
         limit: pageSize,
         subjectId: subjectId,
+        hasAudioFiles: undefined,
       });
     },
     [
       setSearchText,
       setTypeFilter,
       setDifficultyFilter,
+      setHasAudioFilesFilter,
       fetchQuestions,
       pageSize,
     ]
@@ -118,9 +122,10 @@ const QuestionList = () => {
         page,
         limit: pageSize,
         subjectId: activeSubjectId,
+        hasAudioFiles: hasAudioFilesFilter !== 'all' ? hasAudioFilesFilter : undefined,
       });
     },
-    [fetchQuestions, pageSize, activeSubjectId]
+    [fetchQuestions, pageSize, activeSubjectId, hasAudioFilesFilter]
   );
 
   // 处理搜索
@@ -129,8 +134,9 @@ const QuestionList = () => {
       page: 1,
       limit: pageSize,
       subjectId: activeSubjectId,
+      hasAudioFiles: hasAudioFilesFilter !== 'all' ? hasAudioFilesFilter : undefined,
     });
-  }, [fetchQuestions, pageSize, activeSubjectId]);
+  }, [fetchQuestions, pageSize, activeSubjectId, hasAudioFilesFilter]);
 
   // 处理类型筛选
   const handleTypeFilterChange = useCallback(
@@ -140,9 +146,10 @@ const QuestionList = () => {
         page: 1,
         limit: pageSize,
         subjectId: activeSubjectId,
+        hasAudioFiles: hasAudioFilesFilter !== 'all' ? hasAudioFilesFilter : undefined,
       });
     },
-    [setTypeFilter, fetchQuestions, pageSize, activeSubjectId]
+    [setTypeFilter, fetchQuestions, pageSize, activeSubjectId, hasAudioFilesFilter]
   );
 
   // 处理难度筛选
@@ -153,9 +160,24 @@ const QuestionList = () => {
         page: 1,
         limit: pageSize,
         subjectId: activeSubjectId,
+        hasAudioFiles: hasAudioFilesFilter !== 'all' ? hasAudioFilesFilter : undefined,
       });
     },
-    [setDifficultyFilter, fetchQuestions, pageSize, activeSubjectId]
+    [setDifficultyFilter, fetchQuestions, pageSize, activeSubjectId, hasAudioFilesFilter]
+  );
+
+  // 处理音频文件筛选
+  const handleHasAudioFilesFilterChange = useCallback(
+    (value: string) => {
+      setHasAudioFilesFilter(value);
+      fetchQuestions({
+        page: 1,
+        limit: pageSize,
+        subjectId: activeSubjectId,
+        hasAudioFiles: value !== 'all' ? value : undefined,
+      });
+    },
+    [setHasAudioFilesFilter, fetchQuestions, pageSize, activeSubjectId]
   );
 
   // 处理每页显示条数变化
@@ -165,9 +187,10 @@ const QuestionList = () => {
         page: currentPage,
         limit: size,
         subjectId: activeSubjectId,
+        hasAudioFiles: hasAudioFilesFilter !== 'all' ? hasAudioFilesFilter : undefined,
       });
     },
-    [fetchQuestions, currentPage, activeSubjectId]
+    [fetchQuestions, currentPage, activeSubjectId, hasAudioFilesFilter]
   );
 
   // 初始化获取科目列表
@@ -316,6 +339,19 @@ const QuestionList = () => {
                   <Option value="简单">简单</Option>
                   <Option value="中等">中等</Option>
                   <Option value="困难">困难</Option>
+                </Select>
+              </Col>
+              <Col xs={12} sm={6} md={6}>
+                <Select
+                  placeholder="音频文件"
+                  style={{ width: "100%" }}
+                  value={hasAudioFilesFilter}
+                  onChange={handleHasAudioFilesFilterChange}
+                  allowClear
+                >
+                  <Option value="all">全部</Option>
+                  <Option value="true">有音频</Option>
+                  <Option value="false">无音频</Option>
                 </Select>
               </Col>
             </Row>

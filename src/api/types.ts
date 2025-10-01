@@ -11,6 +11,7 @@ export interface GetQuestionsParams {
   difficulty?: 'easy' | 'medium' | 'hard';
   tags?: string[];
   searchKeyword?: string;
+  hasAudioFiles?: boolean;
   page?: number;
   limit?: number;
 }

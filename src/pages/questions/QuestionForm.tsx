@@ -250,7 +250,7 @@ const QuestionForm = () => {
           }
 
           // 保存成功后刷新题目列表
-          await fetchQuestions();
+          await fetchQuestions({ subjectId: values.subjectId });
           navigate("/questions");
         } catch (error) {
           console.error("保存题目失败:", error);

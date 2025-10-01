@@ -1,6 +1,7 @@
 import React, { useMemo, useCallback } from "react";
 import { Button, Space, Popconfirm } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 import { DifficultyEditor } from "../components/DifficultyEditor";
 import { TagsEditor } from "../components/TagsEditor";
 import { QuestionEditor } from "../components/QuestionEditor";
@@ -394,10 +395,24 @@ export const useQuestionTableColumns = ({
         title: "创建时间",
         dataIndex: "createdAt",
         key: "createdAt",
+        render: (_, { createdAt }) => {
+          if (!createdAt) return "-";
+          return dayjs(createdAt).format("YYYY-MM-DD HH:mm:ss");
+        },
+      },
+      {
+        title: "更新时间",
+        dataIndex: "updatedAt",
+        key: "updatedAt",
+        render: (_, { updatedAt }) => {
+          if (!updatedAt) return "-";
+          return dayjs(updatedAt).format("YYYY-MM-DD HH:mm:ss");
+        },
       },
       {
         title: "操作",
         key: "action",
+        fixed:'right',
         render: handleActionRender,
       },
     ],

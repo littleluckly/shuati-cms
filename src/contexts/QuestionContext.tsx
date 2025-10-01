@@ -28,6 +28,7 @@ interface QuestionContextType {
     page?: number;
     limit?: number;
     hasAudioFiles?: string;
+    isEnabled?: string;
   }) => Promise<void>;
   handleDelete: (id: string, subjectId: string) => Promise<void>;
   handleUpdateDifficulty: (
@@ -70,6 +71,7 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({
     page?: number;
     limit?: number;
     hasAudioFiles?: string;
+    isEnabled?: string;
   }) => {
     try {
       setLoading(true);
@@ -98,6 +100,11 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({
       // 添加音频文件筛选
       if (params.hasAudioFiles !== undefined) {
         apiParams["hasAudioFiles"] = params.hasAudioFiles === "true";
+      }
+
+      // 添加启用状态筛选
+      if (params.isEnabled !== undefined && params.isEnabled !== "all") {
+        apiParams["isEnabled"] = params.isEnabled === "true";
       }
 
       const response = await getQuestions(apiParams);

@@ -12,6 +12,7 @@ import {
   Divider,
   InputNumber,
   Checkbox,
+  Switch,
 } from "antd";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import MDEditor from "@uiw/react-md-editor";
@@ -69,6 +70,7 @@ const QuestionForm = () => {
             category: (questionDetail as any).category || "", // 类型断言，处理可能不存在的category属性
             tags: questionDetail.tags || [],
             status: (questionDetail as any).status || "草稿", // 类型断言，处理可能不存在的status属性
+            isEnabled: questionDetail.isEnabled ?? true, // 默认启用
             question_markdown: questionDetail.question_markdown,
             answer_simple_markdown: questionDetail.answer_simple_markdown || "",
             answer_detail_markdown: questionDetail.answer_detail_markdown || "",
@@ -235,6 +237,7 @@ const QuestionForm = () => {
             : undefined,
           files: {},
           status: values.status, // 虽然接口定义中没有，但根据API文档应该支持
+          isEnabled: values.isEnabled,
         };
 
         try {
@@ -316,6 +319,7 @@ const QuestionForm = () => {
             type: "single",
             difficulty: "easy",
             status: "草稿",
+            isEnabled: true,
           }}
           disabled={loading}
         >
@@ -495,6 +499,14 @@ const QuestionForm = () => {
               <Radio.Button value="草稿">草稿</Radio.Button>
               <Radio.Button value="已发布">已发布</Radio.Button>
             </Radio.Group>
+          </Form.Item>
+
+          <Form.Item
+            name="isEnabled"
+            label="启用状态"
+            valuePropName="checked"
+          >
+            <Switch />
           </Form.Item>
 
           <Form.Item>

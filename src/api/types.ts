@@ -12,6 +12,7 @@ export interface GetQuestionsParams {
   tags?: string[];
   searchKeyword?: string;
   hasAudioFiles?: boolean;
+  isEnabled?: boolean;
   page?: number;
   limit?: number;
 }

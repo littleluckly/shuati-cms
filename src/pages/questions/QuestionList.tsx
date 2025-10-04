@@ -19,11 +19,13 @@ import {
   EditOutlined,
   DeleteOutlined,
   SearchOutlined,
+  ExportOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useQuestion } from "../../contexts/QuestionContext";
 import { useSubject } from "../../contexts/SubjectContext";
 import { useQuestionTableColumns } from "./hooks/useQuestionTableColumns";
+import request from "../../utils/request";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -270,6 +272,76 @@ const QuestionList = () => {
     cancelBatchEdit();
   }, [cancelBatchEdit]);
 
+  // 导出题目功能
+  const handleExportQuestions = useCallback(async () => {
+    try {
+      // 映射显示名称到API参数值
+      const difficultyMap = {
+        '简单': 'easy',
+        '中等': 'medium', 
+        '困难': 'hard'
+      };
+
+      const typeMap = {
+        '选择题': 'choice',
+        '多选题': 'multiple',
+        '简答题': 'text',
+        '编程题': 'code'
+      };
+
+      // 准备导出参数，基于当前过滤条件
+      const exportParams = {
+        subjectId: activeSubjectId || undefined,
+        searchKeyword: searchText || undefined,
+        difficulty: difficultyFilter !== 'all' ? [difficultyMap[difficultyFilter]] : undefined,
+        tags: typeFilter !== 'all' ? [typeMap[typeFilter]] : undefined,
+        hasAudioFiles: hasAudioFilesFilter !== 'all' ? (hasAudioFilesFilter === 'true') : undefined,
+        isEnabled: isEnabledFilter !== 'all' ? (isEnabledFilter === 'true') : undefined,
+      };
+
+      // 调用导出API
+      const response = await request('/questions/export', {
+        method: 'POST',
+        data: exportParams,
+        responseType: 'blob', // 重要：指定响应类型为blob
+      });
+
+      // 创建下载链接
+      const blob = new Blob([response.data], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // 生成文件名，包含日期和时间
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10);
+      const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-');
+      const subjectName = subjects.find(s => s._id === activeSubjectId)?.name || '全部科目';
+      link.download = `题目数据_${subjectName}_${dateStr}_${timeStr}.json`;
+      
+      // 触发下载
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // 清理URL对象
+      window.URL.revokeObjectURL(url);
+      
+      message.success('题目导出成功！');
+    } catch (error) {
+      console.error('导出题目失败:', error);
+      message.error('导出题目失败，请稍后重试');
+    }
+  }, [
+    activeSubjectId, 
+    searchText, 
+    typeFilter, 
+    difficultyFilter, 
+    hasAudioFilesFilter, 
+    isEnabledFilter,
+    subjects
+  ]);
+
   // 使用自定义hook获取表格列配置
   const columns = useQuestionTableColumns({
     navigate,
@@ -323,6 +395,12 @@ const QuestionList = () => {
                 }
               >
                 新增题目
+              </Button>
+              <Button
+                icon={<ExportOutlined />}
+                onClick={handleExportQuestions}
+              >
+                导出题目
               </Button>
             </Space>
           </Col>

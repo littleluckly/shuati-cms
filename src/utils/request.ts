@@ -46,7 +46,13 @@ request.interceptors.request.use(
 // 响应拦截器
 request.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>) => {
-    const { data } = response;
+    const { data, config } = response;
+    
+    // 如果是blob响应类型，直接返回整个响应对象
+    if (config.responseType === 'blob') {
+      return response;
+    }
+    
     // 根据统一响应格式处理数据
     if (data.success) {
       return data.data;
